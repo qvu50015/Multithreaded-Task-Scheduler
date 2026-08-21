@@ -1,0 +1,10 @@
+main
+
+# CMake build directory
+/build/
+
+# Compiled executable
+/src/main
+
+# macOS
+.DS_Store
