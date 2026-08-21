@@ -1,34 +1,41 @@
 #include <iostream>
 #include <thread>
 
-void worker1(){
-    std::cout << "Worker 1 started" << std::endl;
-}
+void worker(int id){
+    std::cout << "Worker "<< id << " started" << std::endl;
 
-void worker2(){
-    std::cout << "Worker 2 started" << std::endl;
-}
+    for(int i = 0; i < 1000000; i++){
 
-void worker3(){
-    std::cout << "Worker 3 started " << std::endl;
+    }
 }
-
-void worker4(){
-    std::cout << "Worker 4 started" << std::endl;
-}
-
 
 int main()
 {
-    std::thread t1(worker1);
-    std::thread t2(worker2);
-    std::thread t3(worker3);
-    std::thread t4(worker4);
+    std::thread t1(worker, 1);
+    std::thread t2(worker, 2);
+    std::thread t3(worker, 3);
+    std::thread t4(worker, 4);
 
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
+    if(t1.joinable()){
+        t1.join();
+        std::cout << "Worker 1 finished" << std::endl;
+    }
+
+    if(t2.joinable()){
+        t2.join();
+        std::cout << "Worker 2 finished" << std::endl;
+    }
+
+    if(t3.joinable()){
+        t3.join();
+        std::cout << "Worker 3 finished" << std::endl;
+    }
+
+    if(t4.joinable()){
+        t4.join();
+        std::cout << "Worker 4 finished" << std::endl;
+    }
+
 
     return 0;
 }
