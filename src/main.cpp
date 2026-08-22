@@ -1,29 +1,19 @@
 #include <iostream>
 #include <thread>
-#include <chrono>
-#include <atomic>
+#include <functional>
 
-std::atomic<bool> running = true;
-
-void worker(int id){
-
+void worker(int id, std::function<void()> task){
     std::cout << "Worker "<< id << " started" << std::endl;
-
-    while(running){
-        for(int i = 0; i < 1000000; i++){}
-    }
+    task();
 
 }
 
 int main()
 {
-    std::thread t1(worker, 1);
-    std::thread t2(worker, 2);
-    std::thread t3(worker, 3);
-    std::thread t4(worker, 4);
-
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-    running = false;
+    std::thread t1(worker, 1, []{std::cout << "Task 1 executing\n";});
+    std::thread t2(worker, 2, []{std::cout << "Task 2 executing\n";});
+    std::thread t3(worker, 3, []{std::cout << "Task 3 executing\n";});
+    std::thread t4(worker, 4, []{std::cout << "Task 4 executing\n";});
 
     if(t1.joinable()){
         t1.join();
