@@ -1,12 +1,18 @@
 #include <iostream>
 #include <thread>
+#include <chrono>
+#include <atomic>
+
+std::atomic<bool> running = true;
 
 void worker(int id){
+
     std::cout << "Worker "<< id << " started" << std::endl;
 
-    for(int i = 0; i < 1000000; i++){
-
+    while(running){
+        for(int i = 0; i < 1000000; i++){}
     }
+
 }
 
 int main()
@@ -15,6 +21,9 @@ int main()
     std::thread t2(worker, 2);
     std::thread t3(worker, 3);
     std::thread t4(worker, 4);
+
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    running = false;
 
     if(t1.joinable()){
         t1.join();
