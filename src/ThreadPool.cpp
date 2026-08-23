@@ -30,7 +30,7 @@ ThreadPool::~ThreadPool(){
 void ThreadPool::worker(int id){
     std::cout << "Worker "<< id << " started" << std::endl;
 
-    while(running)
+    while(true)
     {
         std::function<void()> task;{
             std::unique_lock<std::mutex> lock(taskMutex);
