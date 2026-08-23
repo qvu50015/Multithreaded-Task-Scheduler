@@ -1,19 +1,36 @@
 #include <iostream>
 #include <thread>
 #include <functional>
+#include <queue> 
+#include <mutex>
 
-void worker(int id, std::function<void()> task){
-    std::cout << "Worker "<< id << " started" << std::endl;
+
+std::queue<std::function<void()>> tasks;
+std::mutex taskMutex;
+
+void worker(int id){
+
+    std::function<void()> task;{
+        std::lock_guard<std::mutex> lock(taskMutex);
+        std::cout << "Worker "<< id << " started" << std::endl;
+        task = tasks.front();
+        tasks.pop();
+    }
+
     task();
 
 }
 
-int main()
-{
-    std::thread t1(worker, 1, []{std::cout << "Task 1 executing\n";});
-    std::thread t2(worker, 2, []{std::cout << "Task 2 executing\n";});
-    std::thread t3(worker, 3, []{std::cout << "Task 3 executing\n";});
-    std::thread t4(worker, 4, []{std::cout << "Task 4 executing\n";});
+int main(){
+    tasks.push([] {std::cout << "Task 1 executing\n";});
+    tasks.push([] {std::cout << "Task 2 executing\n";});
+    tasks.push([] {std::cout << "Task 3 executing\n";});
+    tasks.push([] {std::cout << "Task 4 executing\n";});
+
+    std::thread t1(worker, 1);
+    std::thread t2(worker, 2);
+    std::thread t3(worker, 3);
+    std::thread t4(worker, 4);
 
     if(t1.joinable()){
         t1.join();
