@@ -1,0 +1,18 @@
+Tiny Task Benchmark
+===================
+
+Workload:
+100,000 tiny tasks
+tinyWork(i) = i * 2
+
+Expected result:
+9,999,900,000
+
+Sequential:
+335 µs
+
+ThreadPool:
+1 worker: 190164 µs
+2 workers: 280974 µs
+4 workers: 283415 µs
+8 workers: 332152 µs
