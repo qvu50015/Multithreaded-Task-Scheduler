@@ -2,17 +2,93 @@ Tiny Task Benchmark
 ===================
 
 Workload:
-100,000 tiny tasks
-tinyWork(i) = i * 2
-
-Expected result:
-9,999,900,000
+- 100,000 tasks
+- Each task performs: value * 2
+- 5 runs per configuration
+- Timing unit: microseconds (us)
+- All configurations produced the correct result:
+  9,999,900,000
 
 Sequential:
-335 µs
+Run 1: 265 us
+Run 2: 266 us
+Run 3: 265 us
+Run 4: 230 us
+Run 5: 230 us
+Average: 251.2 us
 
-ThreadPool:
-1 worker: 190164 µs
-2 workers: 280974 µs
-4 workers: 283415 µs
-8 workers: 332152 µs
+ThreadPool [1]:
+Run 1: 174822 us
+Run 2: 163038 us
+Run 3: 164389 us
+Run 4: 163078 us
+Run 5: 162778 us
+Average: 165621 us
+Slowdown: 659.319x
+
+ThreadPool [2]:
+Run 1: 258903 us
+Run 2: 271186 us
+Run 3: 278289 us
+Run 4: 274594 us
+Run 5: 268557 us
+Average: 270306 us
+Slowdown: 1076.06x
+
+ThreadPool [4]:
+Run 1: 272582 us
+Run 2: 273636 us
+Run 3: 273532 us
+Run 4: 273325 us
+Run 5: 278238 us
+Average: 274263 us
+Slowdown: 1091.81x
+
+ThreadPool [8]:
+Run 1: 319453 us
+Run 2: 321424 us
+Run 3: 319835 us
+Run 4: 318650 us
+Run 5: 325824 us
+Average: 321037 us
+Slowdown: 1278.01x
+
+
+Analysis:
+The ThreadPool performs significantly worse than the sequential
+implementation for extremely small tasks.
+
+The sequential workload completes in 251.2 us, while the ThreadPool
+takes 165,621 us with 1 worker and 321,037 us with 8 workers.
+
+Increasing the number of workers increases the overhead rather than
+improving performance. This demonstrates that task scheduling,
+synchronization, queue management, and future/result handling can
+dominate the cost of very small tasks.
+
+Conclusion:
+The ThreadPool is effective for sufficiently large CPU-bound tasks,
+but extremely fine-grained tasks are too small to amortize the
+overhead of scheduling them individually.
+
+The ThreadPool has to perform a huge amount of infrastructure work for 100,000 individual tasks:
+
+create future
+      ↓
+create packaged_task
+      ↓
+queue task
+      ↓
+lock mutex
+      ↓
+notify worker
+      ↓
+worker wakes
+      ↓
+lock mutex
+      ↓
+remove task
+      ↓
+execute tinyWork()
+      ↓
+store result
