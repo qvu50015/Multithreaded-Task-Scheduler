@@ -41,7 +41,7 @@ int main()
 
     auto startTime = std::chrono::steady_clock::now();
 
-    ThreadPool pool(1);
+    ThreadPool pool(8);
 
     std::vector<std::future<int>> futures;
 
@@ -80,7 +80,7 @@ int main()
         );
 
     std::cout << "Primes: " << total << '\n';
-    std::cout << "ThreadPool: " << duration.count() << " ms\n";
+    std::cout << "ThreadPool [8]: " << duration.count() << " ms\n";
 
     return 0;
 }

@@ -1,4 +1,4 @@
-Prime Counting Benchmark
+Prime Counting Benchmark (16 tasks)
 Range: 2 - 5,000,000
 Prime Count: 348,513
 
@@ -11,33 +11,33 @@ Sequential:
 Average: 730.6 ms
 
 ThreadPool [1]:
-767 ms
-754 ms
-728 ms
-724 ms
+736 ms
+720 ms
 726 ms
-Average: 739.8 ms
+718 ms
+730 ms
+Average: 726.0 ms
 
 ThreadPool [2]:
-441 ms
-424 ms
-451 ms
-422 ms
-427 ms
-Average: 433.0 ms
+394 ms
+392 ms
+392 ms
+393 ms
+384 ms
+Average: 391.0 ms
 
 ThreadPool [4]:
-261 ms
-261 ms
-257 ms
-260 ms
-260 ms
-Average: 259.8 ms
+232 ms
+221 ms
+212 ms
+219 ms
+220 ms
+Average: 220.8 ms
 
 ThreadPool [8]:
-262 ms
-254 ms
-261 ms
-265 ms
-261 ms
-Average: 260.6 ms
+176 ms
+169 ms
+165 ms
+166 ms
+165 ms
+Average: 168.2 ms
