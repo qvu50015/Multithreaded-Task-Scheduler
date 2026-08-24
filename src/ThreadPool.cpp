@@ -1,6 +1,13 @@
 #include "ThreadPool.h"
 #include <iostream>
 
+thread_local int currentWorkerId = 0;
+
+int getCurrentWorkerId()
+{
+    return currentWorkerId;
+}
+
 ThreadPool::ThreadPool(size_t numWorkers)
 {
     for (size_t i = 0; i < numWorkers; i++){
@@ -20,13 +27,14 @@ ThreadPool::~ThreadPool(){
 }
 
 void ThreadPool::worker(int id){
+    currentWorkerId = id;
+
     std::cout << "Worker "<< id << " started" << std::endl;
 
     while(true)
     {
         std::function<void()> task;{
             std::unique_lock<std::mutex> lock(taskMutex);
-           
 
             taskCondition.wait(lock, [this] {
                 return !tasks.empty() || !running;
@@ -38,12 +46,10 @@ void ThreadPool::worker(int id){
 
             task = tasks.front();
             tasks.pop();
-            
-
         }
 
         if(task){
-        task();
+            task();
         }
     }
 }

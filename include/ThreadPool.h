@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <memory>
 
+int getCurrentWorkerId();
+
 class ThreadPool {
 private:
     std::condition_variable taskCondition;
@@ -22,8 +24,10 @@ private:
 
 public:
     ThreadPool(size_t numWorkers);
+
     template <typename F>
     auto enqueue(F task);
+
     ~ThreadPool();
 
 private:
@@ -53,6 +57,7 @@ auto ThreadPool::enqueue(F task)
     }
 
     taskCondition.notify_one();
+
     return future;
 }
 

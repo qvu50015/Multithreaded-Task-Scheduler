@@ -84,9 +84,23 @@ long long threadPoolBenchmark(int numWorkers)
     for (int workload : workloads) {
         futures.push_back(
             pool.enqueue([workload] {
-                return unevenWork(workload);
-            })
-        );
+            auto taskStart = std::chrono::steady_clock::now();
+
+            long long result = unevenWork(workload);
+
+            auto taskEnd = std::chrono::steady_clock::now();
+            
+            auto taskDuration = std::chrono::duration_cast<std::chrono::milliseconds>(taskEnd - taskStart);
+
+            std::cout << "Worker "<< getCurrentWorkerId() << " | Task workload: "
+                    << workload
+                    << " | Time: "
+                    << taskDuration.count()
+                    << " ms\n";
+
+            return result;
+        })
+    );
     }
 
     long long total = 0;
@@ -111,8 +125,8 @@ long long threadPoolBenchmark(int numWorkers)
 
 int main()
 {
-    const int numRuns = 5;
-    std::vector<int> workerCounts = {1, 2, 4, 8};
+    const int numRuns = 1;
+    std::vector<int> workerCounts = {4};
 
     // Sequential benchmark
     long long sequentialTotal = 0;
