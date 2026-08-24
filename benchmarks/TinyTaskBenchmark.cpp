@@ -83,7 +83,7 @@ int main()
                   << run + 1
                   << " | Time: "
                   << time
-                  << " us\n";
+                  << " µs\n";
     }
 
     double sequentialAverage =
@@ -91,7 +91,7 @@ int main()
 
     std::cout << "Sequential | Average: "
               << sequentialAverage
-              << " us\n\n";
+              << " µs\n\n";
 
 
     // ThreadPool benchmark
@@ -111,7 +111,7 @@ int main()
                       << run + 1
                       << " | Time: "
                       << time
-                      << " us\n";
+                      << " µs\n";
         }
 
         double average =
@@ -124,7 +124,7 @@ int main()
                   << workers
                   << " | Average: "
                   << average
-                  << " us"
+                  << " µs"
                   << " | Slowdown: "
                   << slowdown
                   << "x\n\n";
