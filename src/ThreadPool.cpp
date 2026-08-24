@@ -34,7 +34,7 @@ void ThreadPool::worker(int id){
     while(true)
     {
         std::function<void()> task;{
-            std::unique_lock<std::mutex> lock(taskMutex);
+            std::unique_lock<std::mutex> lock(conditionMutex);
 
             taskCondition.wait(lock, [this] {
                 return !tasks.empty() || !running;
@@ -44,8 +44,7 @@ void ThreadPool::worker(int id){
                 return;
             }
 
-            task = tasks.front();
-            tasks.pop();
+            tasks.tryPop(task);
         }
 
         if(task){

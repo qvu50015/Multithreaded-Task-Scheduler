@@ -1,6 +1,7 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
+#include "TaskQueue.h"
 #include <thread>
 #include <functional>
 #include <queue>
@@ -17,8 +18,8 @@ int getCurrentWorkerId();
 class ThreadPool {
 private:
     std::condition_variable taskCondition;
-    std::queue<std::function<void()>> tasks;
-    std::mutex taskMutex;
+    std::mutex conditionMutex;
+    TaskQueue tasks;
     std::atomic<bool> running = true;
     std::vector<std::thread> workers;
 
@@ -35,8 +36,7 @@ private:
 };
 
 template <typename F>
-auto ThreadPool::enqueue(F task)
-{
+auto ThreadPool::enqueue(F task){
     using ReturnType = std::invoke_result_t<F>;
 
     std::packaged_task<ReturnType()> packagedTask(task);
@@ -49,7 +49,6 @@ auto ThreadPool::enqueue(F task)
         );
 
     {
-        std::lock_guard<std::mutex> lock(taskMutex);
 
         tasks.push([taskWrapper]() {
             (*taskWrapper)();
