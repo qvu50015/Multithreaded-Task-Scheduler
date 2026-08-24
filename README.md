@@ -11,15 +11,21 @@ cmake --build build
 
 ## Performance
 
-CPU-bound prime-counting benchmark over the range 2–5,000,000
-using 16 independent tasks. Each configuration was run five times.
+Benchmarked a CPU-bound prime-counting workload over the range
+2–5,000,000 using 16 independent tasks. Each configuration was
+run 5 times, with the average execution time reported.
 
-| Configuration | Average Time | Speedup |
+All configurations produced the expected result of 348,513 primes.
+
+| Configuration | Avg Time | Speedup |
 |---|---:|---:|
-| Sequential | 730.6 ms | 1.00× |
-| ThreadPool (1 worker) | 726.0 ms | 1.01× |
-| ThreadPool (2 workers) | 395.4 ms | 1.85× |
-| ThreadPool (4 workers) | 220.8 ms | 3.31× |
-| ThreadPool (8 workers) | 168.2 ms | 4.34× |
+| Sequential | 726.0 ms | 1.00× |
+| ThreadPool (1) | 720.2 ms | 1.01× |
+| ThreadPool (2) | 381.2 ms | 1.90× |
+| ThreadPool (4) | 208.0 ms | 3.49× |
+| ThreadPool (8) | 161.6 ms | 4.49× |
 
-All configurations produced the same result: 348,513 primes.
+The ThreadPool achieved a 4.49× speedup with 8 workers compared
+with the sequential baseline. Performance improved as worker
+count increased, although scaling diminished at higher worker
+counts.
