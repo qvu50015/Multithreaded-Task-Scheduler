@@ -19,7 +19,8 @@ add_executable(thread_pool_tests
 
 # Benchmark
 add_executable(benchmark
-    benchmarks/Benchmark.cpp
+    # benchmarks/Benchmark.cpp
+    benchmarks/TinyTaskBenchmark.cpp
     src/ThreadPool.cpp
 )
 
