@@ -1,0 +1,93 @@
+Prime Scaling Benchmark
+=======================
+
+Environment
+-----------
+CPU: Apple M3
+Compiler: C++20
+Workers tested: 1, 2, 4, 8
+
+Workload
+--------
+Type: CPU-bound prime counting
+Range: 2 -> 5,000,000
+Number of tasks: 16
+Runs per configuration: 5
+
+Correctness
+-----------
+Expected prime count: 348,513
+All benchmark runs produced the expected result.
+
+
+Results
+-------
+
+Sequential
+Run 1: 737 ms
+Run 2: 714 ms
+Run 3: 740 ms
+Run 4: 721 ms
+Run 5: 718 ms
+Average: 726.0 ms
+Speedup: 1.00x
+
+
+ThreadPool (1 worker)
+Run 1: 718 ms
+Run 2: 722 ms
+Run 3: 722 ms
+Run 4: 719 ms
+Run 5: 720 ms
+Average: 720.2 ms
+Speedup: 1.01x
+
+
+ThreadPool (2 workers)
+Run 1: 380 ms
+Run 2: 381 ms
+Run 3: 382 ms
+Run 4: 382 ms
+Run 5: 381 ms
+Average: 381.2 ms
+Speedup: 1.90x
+
+
+ThreadPool (4 workers)
+Run 1: 208 ms
+Run 2: 210 ms
+Run 3: 209 ms
+Run 4: 207 ms
+Run 5: 206 ms
+Average: 208.0 ms
+Speedup: 3.49x
+
+
+ThreadPool (8 workers)
+Run 1: 150 ms
+Run 2: 166 ms
+Run 3: 163 ms
+Run 4: 165 ms
+Run 5: 164 ms
+Average: 161.6 ms
+Speedup: 4.49x
+
+
+Summary
+-------
+Sequential baseline: 726.0 ms
+
+1 worker:  720.2 ms  | 1.01x speedup
+2 workers: 381.2 ms  | 1.90x speedup
+4 workers: 208.0 ms  | 3.49x speedup
+8 workers: 161.6 ms  | 4.49x speedup
+
+Best result:
+8 workers achieved a 4.49x speedup compared with the sequential
+baseline for this CPU-bound prime-counting workload.
+
+Scaling observation:
+Performance improved as the number of worker threads increased,
+but scaling was not linear. The improvement from 4 to 8 workers
+was smaller than the improvement from 2 to 4 workers, indicating
+diminishing returns at higher worker counts.
