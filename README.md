@@ -29,3 +29,21 @@ The ThreadPool achieved a 4.49× speedup with 8 workers compared
 with the sequential baseline. Performance improved as worker
 count increased, although scaling diminished at higher worker
 counts.
+
+## Tiny-Task Overhead
+
+To measure scheduler overhead, 100,000 extremely small tasks were
+submitted to the ThreadPool.
+
+| Configuration | Time |
+|---|---:|
+| Sequential | 335 µs |
+| ThreadPool (1) | 190,164 µs |
+| ThreadPool (2) | 280,974 µs |
+| ThreadPool (4) | 283,415 µs |
+| ThreadPool (8) | 332,152 µs |
+
+The tiny-task workload demonstrates that the ThreadPool introduces
+significant overhead when individual tasks perform very little work.
+In this case, task creation, synchronization, queue operations, and
+future management dominate the cost of the actual computation.
