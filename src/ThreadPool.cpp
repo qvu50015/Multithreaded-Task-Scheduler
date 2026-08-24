@@ -8,14 +8,6 @@ ThreadPool::ThreadPool(size_t numWorkers)
     }
 }
 
-void ThreadPool::enqueue(std::function<void()> task){
-    {
-    std::lock_guard<std::mutex> lock(taskMutex);
-    tasks.push(task);
-    }
-    taskCondition.notify_one();
-}
-
 ThreadPool::~ThreadPool(){
     running = false;
     taskCondition.notify_all();

@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(task_scheduler
     src/main.cpp
     src/ThreadPool.cpp
+    # src/future_test.cpp
 )
 
 target_include_directories(task_scheduler PRIVATE
