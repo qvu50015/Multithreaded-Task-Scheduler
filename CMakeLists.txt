@@ -20,6 +20,7 @@ add_executable(thread_pool_tests
 # Benchmark
 add_executable(benchmark
     benchmarks/Benchmark.cpp
+    src/ThreadPool.cpp
 )
 
 target_include_directories(task_scheduler PRIVATE
