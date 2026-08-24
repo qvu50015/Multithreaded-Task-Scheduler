@@ -1,0 +1,36 @@
+Uneven Workload — Global Queue Baseline
+
+Workers: 4
+Tasks: 16
+
+Sequential:
+465 ms
+
+ThreadPool:
+144 ms
+
+Speedup:
+3.23x
+
+Worker distribution:
+
+Worker 1:
+2M, 3M, 70M, 3M, 60M
+Total: 138M iterations
+
+Worker 2:
+80M, 2M, 80M
+Total: 162M iterations
+
+Worker 3:
+1M, 1M, 60M, 1M, 90M
+Total: 153M iterations
+
+Worker 4:
+50M, 2M, 50M
+Total: 102M iterations
+
+Observation:
+The global queue dynamically distributes tasks among workers.
+The workload is not perfectly balanced, but workers can acquire
+additional tasks after completing previous work.
