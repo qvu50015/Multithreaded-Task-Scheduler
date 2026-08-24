@@ -28,15 +28,15 @@ long long sequentialBenchmark(){
     return duration.count();
 }
 
-long long threadPoolBenchmark(int numWorkers)
-{
+long long threadPoolBenchmark(int numWorkers){
     const int numTasks = 100000;
 
-    auto start = std::chrono::steady_clock::now();
-
     ThreadPool pool(numWorkers);
-
     std::vector<std::future<long long>> futures;
+    
+    // Measure task submission, scheduling, execution, and result collection.
+    // ThreadPool construction is excluded.
+    auto start = std::chrono::steady_clock::now();
 
     for (int i = 0; i < numTasks; i++) {
         futures.push_back(
@@ -68,16 +68,66 @@ long long threadPoolBenchmark(int numWorkers)
 
 int main()
 {
-    long long sequentialTime = sequentialBenchmark();
-
-    std::cout << "Sequential: " << sequentialTime << " µs\n\n";
-
+    const int numRuns = 5;
     std::vector<int> workerCounts = {1, 2, 4, 8};
 
-    for (int workers : workerCounts) {
-        long long time = threadPoolBenchmark(workers);
+    // Sequential benchmark
+    long long sequentialTotal = 0;
 
-        std::cout << "Workers: " << workers << " | Time: " << time << " µs\n";
+    for (int run = 0; run < numRuns; run++) {
+        long long time = sequentialBenchmark();
+
+        sequentialTotal += time;
+
+        std::cout << "Sequential | Run: "
+                  << run + 1
+                  << " | Time: "
+                  << time
+                  << " us\n";
+    }
+
+    double sequentialAverage =
+        static_cast<double>(sequentialTotal) / numRuns;
+
+    std::cout << "Sequential | Average: "
+              << sequentialAverage
+              << " us\n\n";
+
+
+    // ThreadPool benchmark
+    for (int workers : workerCounts) {
+
+        long long totalTime = 0;
+
+        for (int run = 0; run < numRuns; run++) {
+
+            long long time = threadPoolBenchmark(workers);
+
+            totalTime += time;
+
+            std::cout << "Workers: "
+                      << workers
+                      << " | Run: "
+                      << run + 1
+                      << " | Time: "
+                      << time
+                      << " us\n";
+        }
+
+        double average =
+            static_cast<double>(totalTime) / numRuns;
+
+        double slowdown =
+            average / sequentialAverage;
+
+        std::cout << "Workers: "
+                  << workers
+                  << " | Average: "
+                  << average
+                  << " us"
+                  << " | Slowdown: "
+                  << slowdown
+                  << "x\n\n";
     }
 
     return 0;

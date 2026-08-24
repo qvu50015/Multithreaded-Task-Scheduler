@@ -32,8 +32,7 @@ int countPrimes(int start, int end)
     return count;
 }
 
-long long sequentialBenchmark()
-{
+long long sequentialBenchmark(){
     int start = 2;
     int end = 5000000;
 
