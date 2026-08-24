@@ -3,6 +3,8 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <array>
+#include <atomic>
 
 long long unevenWork(int workload){
     long long result = 0;
@@ -77,36 +79,53 @@ long long threadPoolBenchmark(int numWorkers)
 
     ThreadPool pool(numWorkers);
 
+    std::array<std::atomic<int>, 8> taskCounts{};
+    std::array<std::atomic<long long>, 8> workerWorkloads{};
+    std::array<std::atomic<long long>, 8> workerTimes{};
+    
+    for (auto& count : taskCounts) {
+        count = 0;
+    }
+
+    for (auto& workload : workerWorkloads) {
+        workload = 0;
+    }
+
+    for (auto& time : workerTimes) {
+        time = 0;
+    }
+
     std::vector<std::future<long long>> futures;
 
     auto start = std::chrono::steady_clock::now();
 
     for (int workload : workloads) {
         futures.push_back(
-            pool.enqueue([workload] {
-            auto taskStart = std::chrono::steady_clock::now();
+            pool.enqueue([workload, &taskCounts, &workerWorkloads, &workerTimes] {
+                int workerId = getCurrentWorkerId();
+                auto taskStart = std::chrono::steady_clock::now();
+                taskCounts[workerId - 1]++;
+                workerWorkloads[workerId - 1] += workload;
 
-            long long result = unevenWork(workload);
+                long long result = unevenWork(workload);
+                auto taskEnd = std::chrono::steady_clock::now();
+                auto taskTime = std::chrono::duration_cast<std::chrono::microseconds>(taskEnd - taskStart).count();
 
-            auto taskEnd = std::chrono::steady_clock::now();
-            
-            auto taskDuration = std::chrono::duration_cast<std::chrono::milliseconds>(taskEnd - taskStart);
+                workerTimes[workerId - 1] += taskTime;
+                return result;
 
-            std::cout << "Worker "<< getCurrentWorkerId() << " | Task workload: "
-                    << workload
-                    << " | Time: "
-                    << taskDuration.count()
-                    << " ms\n";
-
-            return result;
-        })
-    );
+            })
+        );
     }
 
     long long total = 0;
 
     for (auto& future : futures) {
         total += future.get();
+    }
+
+    for (int i = 0; i < numWorkers; i++) {
+        std::cout << "Worker " << i + 1 << " | Tasks: " << taskCounts[i] << " | Workload: " << workerWorkloads[i] << " | Work Time: " << workerTimes[i] << " us\n";
     }
 
     if (total != 19016499722500000LL) {
@@ -123,10 +142,9 @@ long long threadPoolBenchmark(int numWorkers)
     return duration.count();
 }
 
-int main()
-{
-    const int numRuns = 1;
-    std::vector<int> workerCounts = {4};
+int main(){
+    const int numRuns = 5;
+    std::vector<int> workerCounts = {1,2, 4, 8};
 
     // Sequential benchmark
     long long sequentialTotal = 0;
