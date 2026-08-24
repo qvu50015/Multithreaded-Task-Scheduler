@@ -32,7 +32,30 @@ int countPrimes(int start, int end)
     return count;
 }
 
-long long benchmark(int numWorkers)
+long long sequentialBenchmark()
+{
+    int start = 2;
+    int end = 5000000;
+
+    auto startTime = std::chrono::steady_clock::now();
+
+    int total = countPrimes(start, end);
+
+    auto endTime = std::chrono::steady_clock::now();
+
+    if (total != 348513) {
+        std::cout << "ERROR: Incorrect prime count!\n";
+    }
+
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            endTime - startTime
+        );
+
+    return duration.count();
+}
+
+long long threadPoolBenchmark(int numWorkers)
 {
     int start = 2;
     int end = 5000000;
@@ -83,13 +106,28 @@ long long benchmark(int numWorkers)
 
 int main(){
     std::vector<int> workerCounts = {1, 2, 4, 8};
-    double baselineTime = 0;
+    long long sequentialTotal = 0;
+
+    for (int run = 0; run < 5; run++) {
+        long long time = sequentialBenchmark();
+        sequentialTotal += time;
+
+        std::cout << "Sequential | Run: "
+                  << run + 1
+                  << " | Time: "
+                  << time
+                  << " ms\n";
+    }
+
+    double sequentialAverage = static_cast<double>(sequentialTotal) / 5.0;
+
+    std::cout << "Sequential | Average: " << sequentialAverage << " ms\n\n";
 
     for (int workers : workerCounts) {
         long long totalTime = 0;
 
         for (int run = 0; run < 5; run++) {
-            long long time = benchmark(workers);
+            long long time = threadPoolBenchmark(workers);
             totalTime += time;
             
 
@@ -101,14 +139,10 @@ int main(){
         }
 
         double average = static_cast<double>(totalTime) / 5.0;
-
-        if (workers == 1) {
-            baselineTime = average;
-        }
         
-        double speedup = baselineTime / average;
+        double speedup = sequentialAverage / average;
 
-        std::cout << "Workers: " << workers
+        std::cout << "⭐ Workers: " << workers
           << " | Average: " << average
           << " ms"
           << " | Speedup: " << speedup
