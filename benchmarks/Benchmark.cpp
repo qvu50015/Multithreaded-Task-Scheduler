@@ -85,8 +85,12 @@ int main(){
     std::vector<int> workerCounts = {1, 2, 4, 8};
 
     for (int workers : workerCounts) {
+        long long totalTime = 0;
+
         for (int run = 0; run < 5; run++) {
             long long time = benchmark(workers);
+            totalTime += time;
+            
 
             std::cout << "Workers: " << workers << " | Run: "
                     << run + 1
@@ -94,6 +98,12 @@ int main(){
                     << time
                     << " ms\n";
         }
+
+        double average = static_cast<double>(totalTime) / 5.0;
+
+        std::cout << "\nWorkers: " << workers
+          << " | Average: " << average
+          << " ms\n\n";
     }
 
     return 0;
