@@ -17,10 +17,19 @@ add_executable(thread_pool_tests
     src/ThreadPool.cpp
 )
 
+# Benchmark
+add_executable(benchmark
+    benchmarks/Benchmark.cpp
+)
+
 target_include_directories(task_scheduler PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
 target_include_directories(thread_pool_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_include_directories(benchmark PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
