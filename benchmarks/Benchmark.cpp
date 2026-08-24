@@ -83,6 +83,7 @@ long long benchmark(int numWorkers)
 
 int main(){
     std::vector<int> workerCounts = {1, 2, 4, 8};
+    double baselineTime = 0;
 
     for (int workers : workerCounts) {
         long long totalTime = 0;
@@ -101,10 +102,18 @@ int main(){
 
         double average = static_cast<double>(totalTime) / 5.0;
 
-        std::cout << "\nWorkers: " << workers
+        if (workers == 1) {
+            baselineTime = average;
+        }
+        
+        double speedup = baselineTime / average;
+
+        std::cout << "Workers: " << workers
           << " | Average: " << average
-          << " ms\n\n";
-    }
+          << " ms"
+          << " | Speedup: " << speedup
+          << "x\n\n";
+        }
 
     return 0;
 }
