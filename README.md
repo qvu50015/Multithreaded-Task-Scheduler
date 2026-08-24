@@ -46,4 +46,5 @@ submitted to the ThreadPool.
 The tiny-task workload demonstrates that the ThreadPool introduces
 significant overhead when individual tasks perform very little work.
 In this case, task creation, synchronization, queue operations, and
-future management dominate the cost of the actual computation.
+future management dominate the cost of the actual computation. 
+Tiny-task benchmark timing includes task submission, scheduling, execution, and future result collection, but excludes ThreadPool construction.
