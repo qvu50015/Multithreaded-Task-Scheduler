@@ -1,6 +1,8 @@
 #include "ThreadPool.h"
 #include <iostream>
 #include <chrono>
+#include <vector>
+#include <future>
 
 bool isPrime(int n)
 {
@@ -30,48 +32,45 @@ int countPrimes(int start, int end)
     return count;
 }
 
-int main(){
+int main()
+{
     int start = 2;
     int end = 5000000;
-    int chunkSize = (end - start) / 4;
-
-    int range1Start = start;
-    int range1End = start + chunkSize;
-
-    int range2Start = range1End;
-    int range2End = range2Start + chunkSize;
-
-    int range3Start = range2End;
-    int range3End = range3Start + chunkSize;
-
-    int range4Start = range3End;
-    int range4End = end;
+    int numTasks = 16;
+    int chunkSize = (end - start) / numTasks;
 
     auto startTime = std::chrono::steady_clock::now();
-    ThreadPool pool(8);
 
-    auto future1 = pool.enqueue([range1Start, range1End] {
-        return countPrimes(range1Start, range1End);
-    });
+    ThreadPool pool(1);
 
-    auto future2 = pool.enqueue([range2Start, range2End] {
-        return countPrimes(range2Start, range2End);
-    });
+    std::vector<std::future<int>> futures;
 
-    auto future3 = pool.enqueue([range3Start, range3End] {
-        return countPrimes(range3Start, range3End);
-    });
+    for (int i = 0; i < numTasks; i++) {
 
-    auto future4 = pool.enqueue([range4Start, range4End] {
-        return countPrimes(range4Start, range4End);
-    });
+        int rangeStart = start + i * chunkSize;
 
-    int result1 = future1.get();
-    int result2 = future2.get();
-    int result3 = future3.get();
-    int result4 = future4.get();
+        int rangeEnd;
 
-    int total = result1 + result2 + result3 + result4;
+        if (i == numTasks - 1) {
+            rangeEnd = end;
+        }
+
+        else {
+            rangeEnd = rangeStart + chunkSize;
+        }
+
+        futures.push_back(
+            pool.enqueue([rangeStart, rangeEnd] {
+                return countPrimes(rangeStart, rangeEnd);
+            })
+        );
+    }
+
+    int total = 0;
+
+    for (auto& future : futures) {
+        total += future.get();
+    }
 
     auto endTime = std::chrono::steady_clock::now();
 
@@ -81,7 +80,7 @@ int main(){
         );
 
     std::cout << "Primes: " << total << '\n';
-    std::cout << "ThreadPool [8]: " << duration.count() << " ms\n";
+    std::cout << "ThreadPool: " << duration.count() << " ms\n";
 
     return 0;
 }
