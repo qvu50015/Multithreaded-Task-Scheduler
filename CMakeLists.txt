@@ -19,8 +19,19 @@ add_executable(thread_pool_tests
 
 # Benchmark
 add_executable(benchmark
-    # benchmarks/Benchmark.cpp
+    benchmarks/Benchmark.cpp
+    src/ThreadPool.cpp
+)
+
+# Tiny Task Benchmark
+add_executable(tiny-task-benchmark
     benchmarks/TinyTaskBenchmark.cpp
+    src/ThreadPool.cpp
+)
+
+# Uneven Task Benchmark
+add_executable(uneven-task-benchmark
+    benchmarks/UnevenTaskBenchmark.cpp
     src/ThreadPool.cpp
 )
 
@@ -33,5 +44,13 @@ target_include_directories(thread_pool_tests PRIVATE
 )
 
 target_include_directories(benchmark PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_include_directories(tiny-task-benchmark PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_include_directories(uneven-task-benchmark PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
