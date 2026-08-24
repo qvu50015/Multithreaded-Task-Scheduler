@@ -32,7 +32,7 @@ int countPrimes(int start, int end)
     return count;
 }
 
-int main()
+long long benchmark(int numWorkers)
 {
     int start = 2;
     int end = 5000000;
@@ -40,13 +40,10 @@ int main()
     int chunkSize = (end - start) / numTasks;
 
     auto startTime = std::chrono::steady_clock::now();
-
-    ThreadPool pool(8);
-
+    ThreadPool pool(numWorkers);
     std::vector<std::future<int>> futures;
 
     for (int i = 0; i < numTasks; i++) {
-
         int rangeStart = start + i * chunkSize;
 
         int rangeEnd;
@@ -74,13 +71,30 @@ int main()
 
     auto endTime = std::chrono::steady_clock::now();
 
-    auto duration =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            endTime - startTime
-        );
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
-    std::cout << "Primes: " << total << '\n';
-    std::cout << "ThreadPool [8]: " << duration.count() << " ms\n";
+    if (total != 348513) {
+        std::cout << "ERROR: Incorrect prime count!\n";
+    }
+
+    return duration.count();
+}
+
+
+int main(){
+    std::vector<int> workerCounts = {1, 2, 4, 8};
+
+    for (int workers : workerCounts) {
+        for (int run = 0; run < 5; run++) {
+            long long time = benchmark(workers);
+
+            std::cout << "Workers: " << workers << " | Run: "
+                    << run + 1
+                    << " | Time: "
+                    << time
+                    << " ms\n";
+        }
+    }
 
     return 0;
 }
