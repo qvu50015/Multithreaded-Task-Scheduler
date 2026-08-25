@@ -10,8 +10,18 @@ int getCurrentWorkerId()
 
 ThreadPool::ThreadPool(size_t numWorkers)
 {
-    for (size_t i = 0; i < numWorkers; i++){
-        workers.emplace_back(&ThreadPool::worker, this, i + 1);
+    for (size_t i = 0; i < numWorkers; i++) {
+        workerQueues.push_back(
+            std::make_unique<TaskQueue>()
+        );
+    }
+
+    for (size_t i = 0; i < numWorkers; i++) {
+        workers.emplace_back(
+            &ThreadPool::worker,
+            this,
+            i + 1
+        );
     }
 }
 
@@ -26,28 +36,31 @@ ThreadPool::~ThreadPool(){
     }
 }
 
-void ThreadPool::worker(int id){
-    currentWorkerId = id;
+void ThreadPool::worker(int id)
+{
+    std::cout << "Worker " << id << " started" << std::endl;
 
-    std::cout << "Worker "<< id << " started" << std::endl;
+    size_t workerIndex = id - 1;
 
-    while(true)
+    while (true)
     {
-        std::function<void()> task;{
+        std::function<void()> task;
+
+        {
             std::unique_lock<std::mutex> lock(conditionMutex);
 
-            taskCondition.wait(lock, [this] {
-                return !tasks.empty() || !running;
+            taskCondition.wait(lock, [this, workerIndex] {
+                return !workerQueues[workerIndex]->empty() || !running;
             });
 
-            if(tasks.empty() && !running){
+            if (!running && workerQueues[workerIndex]->empty()) {
                 return;
             }
 
-            tasks.tryPop(task);
+            workerQueues[workerIndex]->tryPop(task);
         }
 
-        if(task){
+        if (task) {
             task();
         }
     }

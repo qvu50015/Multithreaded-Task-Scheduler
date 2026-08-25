@@ -4,7 +4,6 @@
 #include "TaskQueue.h"
 #include <thread>
 #include <functional>
-#include <queue>
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
@@ -19,7 +18,8 @@ class ThreadPool {
 private:
     std::condition_variable taskCondition;
     std::mutex conditionMutex;
-    TaskQueue tasks;
+    std::vector<std::unique_ptr<TaskQueue>> workerQueues;
+    std::atomic<size_t> nextWorker = 0;
     std::atomic<bool> running = true;
     std::vector<std::thread> workers;
 
@@ -36,7 +36,8 @@ private:
 };
 
 template <typename F>
-auto ThreadPool::enqueue(F task){
+auto ThreadPool::enqueue(F task)
+{
     using ReturnType = std::invoke_result_t<F>;
 
     std::packaged_task<ReturnType()> packagedTask(task);
@@ -48,14 +49,14 @@ auto ThreadPool::enqueue(F task){
             std::move(packagedTask)
         );
 
-    {
+    size_t workerIndex =
+        nextWorker.fetch_add(1) % workerQueues.size();
 
-        tasks.push([taskWrapper]() {
-            (*taskWrapper)();
-        });
-    }
+    workerQueues[workerIndex]->push([taskWrapper]() {
+        (*taskWrapper)();
+    });
 
-    taskCondition.notify_one();
+    taskCondition.notify_all();
 
     return future;
 }
