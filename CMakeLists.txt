@@ -46,6 +46,12 @@ add_executable(task_queue_test
     src/ThreadPool.cpp
 )
 
+# Priority Queue Test
+add_executable(priority_queue_test
+    tests/PriorityQueueTest.cpp
+    src/PriorityQueue.cpp
+)
+
 target_include_directories(task_scheduler PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
@@ -66,4 +72,10 @@ target_include_directories(uneven-task-benchmark PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
-target_include_directories(task_queue_test PRIVATE include)
+target_include_directories(task_queue_test PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_include_directories(priority_queue_test PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
