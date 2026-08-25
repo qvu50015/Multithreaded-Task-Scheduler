@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(task_scheduler
     src/main.cpp
     src/ThreadPool.cpp
-    src/TaskQueue.cpp
+    src/PriorityQueue.cpp
 )
 
 # Tests
@@ -17,6 +17,7 @@ add_executable(thread_pool_tests
     tests/ThreadPoolTests.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/PriorityQueue.cpp
 )
 
 # Benchmark
@@ -24,6 +25,7 @@ add_executable(benchmark
     benchmarks/Benchmark.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/PriorityQueue.cpp
 )
 
 # Tiny Task Benchmark
@@ -31,6 +33,7 @@ add_executable(tiny-task-benchmark
     benchmarks/TinyTaskBenchmark.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/PriorityQueue.cpp
 )
 
 # Uneven Task Benchmark
@@ -38,12 +41,15 @@ add_executable(uneven-task-benchmark
     benchmarks/UnevenTaskBenchmark.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/PriorityQueue.cpp
 )
 
+# Task Queue test
 add_executable(task_queue_test
     tests/TaskQueueTest.cpp
     src/TaskQueue.cpp
     src/ThreadPool.cpp
+    src/PriorityQueue.cpp
 )
 
 # Priority Queue Test
