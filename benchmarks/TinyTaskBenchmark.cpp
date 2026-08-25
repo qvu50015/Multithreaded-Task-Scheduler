@@ -40,7 +40,7 @@ long long threadPoolBenchmark(int numWorkers){
 
     for (int i = 0; i < numTasks; i++) {
         futures.push_back(
-            pool.enqueue([i] {
+            pool.enqueue(Priority::MEDIUM, [i] {
                 return tinyWork(i);
             })
         );

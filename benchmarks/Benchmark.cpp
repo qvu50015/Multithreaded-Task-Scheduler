@@ -79,7 +79,7 @@ long long threadPoolBenchmark(int numWorkers)
         }
 
         futures.push_back(
-            pool.enqueue([rangeStart, rangeEnd] {
+            pool.enqueue(Priority::MEDIUM, [rangeStart, rangeEnd] {
                 return countPrimes(rangeStart, rangeEnd);
             })
         );

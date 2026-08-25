@@ -101,7 +101,7 @@ long long threadPoolBenchmark(int numWorkers)
 
     for (int workload : workloads) {
         futures.push_back(
-            pool.enqueue([workload, &taskCounts, &workerWorkloads, &workerTimes] {
+            pool.enqueue(Priority::MEDIUM, [workload, &taskCounts, &workerWorkloads, &workerTimes] {
                 int workerId = getCurrentWorkerId();
                 auto taskStart = std::chrono::steady_clock::now();
                 taskCounts[workerId - 1]++;
