@@ -43,6 +43,7 @@ add_executable(uneven-task-benchmark
 add_executable(task_queue_test
     tests/TaskQueueTest.cpp
     src/TaskQueue.cpp
+    src/ThreadPool.cpp
 )
 
 target_include_directories(task_scheduler PRIVATE

@@ -1,28 +1,28 @@
-#include "TaskQueue.h"
+#include "ThreadPool.h"
 #include <iostream>
+#include <vector>
+#include <future>
 
 int main()
 {
-    TaskQueue queue;
+    ThreadPool pool(4);
 
-    queue.push([] {
-        std::cout << "Task 1 executing\n";
-    });
+    std::vector<std::future<void>> futures;
 
-    queue.push([] {
-        std::cout << "Task 2 executing\n";
-    });
-
-    std::function<void()> task;
-
-    while (queue.tryPop(task)) {
-        task();
+    for (int i = 0; i < 12; i++) {
+        futures.push_back(
+            pool.enqueue([i] {
+                std::cout << "Task " << i
+                          << " executed by Worker "
+                          << getCurrentWorkerId()
+                          << '\n';
+            })
+        );
     }
 
-    std::cout << "Queue empty: "
-              << std::boolalpha
-              << queue.empty()
-              << '\n';
+    for (auto& future : futures) {
+        future.get();
+    }
 
     return 0;
 }

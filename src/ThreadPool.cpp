@@ -38,6 +38,7 @@ ThreadPool::~ThreadPool(){
 
 void ThreadPool::worker(int id)
 {
+    currentWorkerId = id;
     std::cout << "Worker " << id << " started" << std::endl;
 
     size_t workerIndex = id - 1;
