@@ -1,7 +1,7 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
-#include "PriorityQueue.h"
+#include "TaskQueue.h"
 #include <thread>
 #include <functional>
 #include <mutex>
@@ -17,8 +17,9 @@ int getCurrentWorkerId();
 class ThreadPool {
 private:
     std::condition_variable taskCondition;
-    PriorityQueue tasks;
     std::mutex conditionMutex;
+    std::vector<std::unique_ptr<TaskQueue>> workerQueues;
+    std::atomic<size_t> nextWorker = 0;
     std::atomic<bool> running = true;
     std::vector<std::thread> workers;
 
@@ -26,7 +27,7 @@ public:
     ThreadPool(size_t numWorkers);
 
     template <typename F>
-    auto enqueue(Priority priority, F task);
+    auto enqueue(F task);
 
     ~ThreadPool();
 
@@ -35,7 +36,7 @@ private:
 };
 
 template <typename F>
-auto ThreadPool::enqueue(Priority priority, F task)
+auto ThreadPool::enqueue(F task)
 {
     using ReturnType = std::invoke_result_t<F>;
 
@@ -48,8 +49,16 @@ auto ThreadPool::enqueue(Priority priority, F task)
             std::move(packagedTask)
         );
 
-    tasks.push({priority, [taskWrapper]() {(*taskWrapper)();}});
-    taskCondition.notify_one();
+    size_t workerIndex =
+        nextWorker.fetch_add(1) % workerQueues.size();
+
+    workerQueues[workerIndex]->push(
+        [taskWrapper]() {
+            (*taskWrapper)();
+        }
+    );
+
+    taskCondition.notify_all();
 
     return future;
 }

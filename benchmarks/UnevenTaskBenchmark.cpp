@@ -101,7 +101,7 @@ long long threadPoolBenchmark(int numWorkers)
 
     for (int workload : workloads) {
         futures.push_back(
-            pool.enqueue(Priority::MEDIUM, [workload, &taskCounts, &workerWorkloads, &workerTimes] {
+            pool.enqueue([workload, &taskCounts, &workerWorkloads, &workerTimes] {
                 int workerId = getCurrentWorkerId();
                 auto taskStart = std::chrono::steady_clock::now();
                 taskCounts[workerId - 1]++;
@@ -125,7 +125,7 @@ long long threadPoolBenchmark(int numWorkers)
     }
 
     for (int i = 0; i < numWorkers; i++) {
-        std::cout << "Worker " << i + 1 << " | Tasks: " << taskCounts[i] << " | Workload: " << workerWorkloads[i] << " | Work Time: " << workerTimes[i] << " us\n";
+        std::cout << "Worker " << i + 1 << " | Tasks: " << taskCounts[i] << " | Workload: " << workerWorkloads[i] << " | Work Time: " << workerTimes[i] << " µs\n";
     }
 
     if (total != 19016499722500000LL) {
@@ -194,7 +194,7 @@ int main(){
 
         double speedup = sequentialAverage / average;
 
-        std::cout << "Workers: "
+        std::cout << "⭐ Workers: "
                   << workers
                   << " | Average: "
                   << average

@@ -11,7 +11,7 @@ int main()
 
     for (int i = 0; i < 12; i++) {
         futures.push_back(
-            pool.enqueue(Priority::MEDIUM, [i] {
+            pool.enqueue([i] {
                 std::cout << "Task " << i
                           << " executed by Worker "
                           << getCurrentWorkerId()

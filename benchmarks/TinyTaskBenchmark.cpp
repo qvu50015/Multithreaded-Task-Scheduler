@@ -40,7 +40,7 @@ long long threadPoolBenchmark(int numWorkers){
 
     for (int i = 0; i < numTasks; i++) {
         futures.push_back(
-            pool.enqueue(Priority::MEDIUM, [i] {
+            pool.enqueue([i] {
                 return tinyWork(i);
             })
         );
@@ -120,7 +120,7 @@ int main()
         double slowdown =
             average / sequentialAverage;
 
-        std::cout << "Workers: "
+        std::cout << "⭐ Workers: "
                   << workers
                   << " | Average: "
                   << average

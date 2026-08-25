@@ -7,19 +7,19 @@ int main()
 {
     ThreadPool pool(4);
 
-    auto future1 = pool.enqueue(Priority::HIGH, [] {
+    auto future1 = pool.enqueue([] {
         return 42;
     });
 
-    auto future2 = pool.enqueue(Priority::MEDIUM, [] {
+    auto future2 = pool.enqueue([] {
         return 3.14;
     });
 
-    auto future3 = pool.enqueue(Priority::LOW, [] {
+    auto future3 = pool.enqueue([] {
         return std::string("Hello");
     });
 
-    auto future4 = pool.enqueue(Priority::HIGH, [] {
+    auto future4 = pool.enqueue([] {
         throw std::runtime_error("Task failed!");
         return 42;
     });

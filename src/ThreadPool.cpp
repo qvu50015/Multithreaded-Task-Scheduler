@@ -11,6 +11,12 @@ int getCurrentWorkerId()
 ThreadPool::ThreadPool(size_t numWorkers)
 {
     for (size_t i = 0; i < numWorkers; i++) {
+        workerQueues.push_back(
+            std::make_unique<TaskQueue>()
+        );
+    }
+
+    for (size_t i = 0; i < numWorkers; i++) {
         workers.emplace_back(
             &ThreadPool::worker,
             this,
@@ -32,28 +38,30 @@ ThreadPool::~ThreadPool(){
 
 void ThreadPool::worker(int id)
 {
-    std::cout << "Worker " << id << " started" << std::endl;
+    currentWorkerId = id;
+    std::cout << "Worker " << id << " started\n";
 
-    while (true)
-    {
-        PriorityTask task;
+    size_t workerIndex = id - 1;
+
+    while (true) {
+        std::function<void()> task;
 
         {
             std::unique_lock<std::mutex> lock(conditionMutex);
 
-            taskCondition.wait(lock, [this] {
-                return !tasks.empty() || !running;
+            taskCondition.wait(lock, [this, workerIndex] {
+                return !workerQueues[workerIndex]->empty() || !running;
             });
 
-            if (tasks.empty() && !running) {
+            if (workerQueues[workerIndex]->empty() && !running) {
                 return;
             }
 
-            tasks.tryPop(task);
+            workerQueues[workerIndex]->tryPop(task);
         }
 
-        if (task.task) {
-            task.task();
+        if (task) {
+            task();
         }
     }
 }
