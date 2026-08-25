@@ -7,6 +7,10 @@
 struct PriorityTask {
     Priority priority;
     std::function<void()> task;
+
+    bool operator<(const PriorityTask& other) const {
+        return priority > other.priority;
+    }
 };
 
 #endif
