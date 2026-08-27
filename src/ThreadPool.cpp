@@ -68,7 +68,6 @@ void ThreadPool::worker(int id)
 
             if (workerQueues[i]->trySteal(task))
             {
-                std::cout << "Worker " << id << " stole a task from Worker " << i + 1 << '\n';
                 task();
                 break;
             }
