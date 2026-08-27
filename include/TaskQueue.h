@@ -2,12 +2,12 @@
 #define TASKQUEUE_H
 
 #include <functional>
-#include <queue>
+#include <deque>
 #include <mutex>
 
 class TaskQueue {
 private:
-    std::queue<std::function<void()>> tasks;
+    std::deque<std::function<void()>> tasks;
     mutable std::mutex mutex;
 
 public:
@@ -16,6 +16,8 @@ public:
     bool tryPop(std::function<void()>& task);
 
     bool empty() const;
+
+    bool trySteal(std::function<void()>& task);
 };
 
 #endif
