@@ -71,6 +71,12 @@ add_executable(task_queue_steal_test
     src/TaskQueue.cpp
 )
 
+add_executable(work_stealing_test
+    tests/WorkStealingTest.cpp
+    src/ThreadPool.cpp
+    src/TaskQueue.cpp
+)
+
 target_include_directories(task_scheduler PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
@@ -108,5 +114,9 @@ target_include_directories(worker_distribution_test PRIVATE
 )
 
 target_include_directories(task_queue_steal_test PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_include_directories(work_stealing_test PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
