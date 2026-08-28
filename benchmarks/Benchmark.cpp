@@ -138,14 +138,16 @@ int main(){
         }
 
         double average = static_cast<double>(totalTime) / 5.0;
-        
         double speedup = sequentialAverage / average;
+        double efficiency = speedup / workers * 100.0;
 
         std::cout << "⭐ Workers: " << workers
           << " | Average: " << average
           << " ms"
           << " | Speedup: " << speedup
-          << "x\n\n";
+          << "x"
+          << " | Efficiency: " << efficiency
+          << "%\n\n";
         }
 
     return 0;
