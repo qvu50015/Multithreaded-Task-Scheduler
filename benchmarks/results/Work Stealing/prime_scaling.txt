@@ -1,0 +1,42 @@
+Prime Scaling Benchmark — Work Stealing
+
+Workload:
+Count primes from 2 to 5,000,000.
+16 tasks.
+5 runs per configuration.
+
+Sequential:
+Average: 731.0 ms
+
+Thread Pool Results:
+Workers: 1
+Average: 721.2 ms
+Speedup: 1.01359x
+Efficiency: 101.359%
+
+Workers: 2
+Average: 380.0 ms
+Speedup: 1.92368x
+Efficiency: 96.1842%
+
+Workers: 4
+Average: 218.4 ms
+Speedup: 3.34707x
+Efficiency: 83.6767%
+
+Workers: 8
+Average: 167.8 ms
+Speedup: 4.35638x
+Efficiency: 54.4547%
+
+Interpretation:
+The scheduler scales strongly for CPU-bound computational tasks.
+Performance improves from approximately 1.01x with one worker to
+4.36x with eight workers.
+
+Parallel efficiency remains high at two and four workers before
+decreasing at eight workers due to scheduling overhead, contention,
+and limited available parallelism.
+
+The slightly greater than 100% efficiency with one worker is
+attributable to normal benchmark timing variation.
