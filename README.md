@@ -11,24 +11,24 @@ cmake --build build
 
 ## Performance
 
-Benchmarked a CPU-bound prime-counting workload over the range
-2–5,000,000 using 16 independent tasks. Each configuration was
-run 5 times, with the average execution time reported.
+Benchmarks were run on an Apple Silicon Mac using 1, 2, 4, and 8 workers.
+Each configuration was run five times and the average execution time was recorded.
 
-All configurations produced the expected result of 348,513 primes.
+### Prime Counting Benchmark
 
-| Configuration | Avg Time | Speedup |
-|---|---:|---:|
-| Sequential | 726.0 ms | 1.00× |
-| ThreadPool (1) | 720.2 ms | 1.01× |
-| ThreadPool (2) | 381.2 ms | 1.90× |
-| ThreadPool (4) | 208.0 ms | 3.49× |
-| ThreadPool (8) | 161.6 ms | 4.49× |
+| Workers | Average Time | Speedup | Efficiency |
+|--------:|-------------:|--------:|-----------:|
+| Sequential | 740.8 ms | 1.00x | — |
+| 1 | 726.2 ms | 1.02x | 100.0% |
+| 2 | 379.0 ms | 1.95x | 97.7% |
+| 4 | 226.0 ms | 3.28x | 81.9% |
+| 8 | 164.2 ms | 4.51x | 56.4% |
 
-The ThreadPool achieved a 4.49× speedup with 8 workers compared
-with the sequential baseline. Performance improved as worker
-count increased, although scaling diminished at higher worker
-counts.
+Efficiency is calculated as:
+
+`Efficiency = Speedup / Number of Workers × 100`
+
+The scheduler achieved a 4.51x speedup with 8 workers compared with sequential execution. Scaling remained strong through 4 workers, while efficiency decreased at 8 workers due to parallelization and scheduling overhead.
 
 ## Tiny-Task Overhead
 
@@ -48,3 +48,22 @@ significant overhead when individual tasks perform very little work.
 In this case, task creation, synchronization, queue operations, and
 future management dominate the cost of the actual computation. 
 Tiny-task benchmark timing includes task submission, scheduling, execution, and future result collection, but excludes ThreadPool construction.
+
+### Uneven Workload
+
+| Workers | Average Time | Speedup |
+|--------:|-------------:|--------:|
+| Sequential | 445 ms | 1.00x |
+| 1 | 442.8 ms | 1.00x |
+| 2 | 237 ms | 1.88x |
+| 4 | 139.4 ms | 3.19x |
+| 8 | 99 ms | 4.49x |
+
+### Fine-Grained Tasks
+
+The tiny-task benchmark demonstrated significant scheduler overhead.
+100,000 very small tasks took substantially longer through the
+thread pool than executing the equivalent computation sequentially.
+
+This demonstrates that task granularity is an important factor in
+scheduler performance.
