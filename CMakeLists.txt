@@ -40,6 +40,13 @@ add_executable(uneven-task-benchmark
     src/TaskQueue.cpp
 )
 
+# Work stealing Benchmark
+add_executable(work_stealing_benchmark
+    benchmarks/WorkStealingBenchmark.cpp
+    src/ThreadPool.cpp
+    src/TaskQueue.cpp
+)
+
 # Task Queue test
 add_executable(task_queue_test
     tests/TaskQueueTest.cpp
@@ -118,5 +125,9 @@ target_include_directories(task_queue_steal_test PRIVATE
 )
 
 target_include_directories(work_stealing_test PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_include_directories(work_stealing_benchmark PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
