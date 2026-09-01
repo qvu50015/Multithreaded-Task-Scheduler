@@ -10,6 +10,7 @@ add_executable(task_scheduler
     src/main.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/LockFreeTaskQueue.cpp
 )
 
 # Tests
@@ -84,6 +85,11 @@ add_executable(work_stealing_test
     src/TaskQueue.cpp
 )
 
+add_executable(lock_free_queue_test
+    tests/LockFreeTaskQueueTest.cpp
+    src/LockFreeTaskQueue.cpp
+)
+
 target_include_directories(task_scheduler PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
@@ -129,5 +135,9 @@ target_include_directories(work_stealing_test PRIVATE
 )
 
 target_include_directories(work_stealing_benchmark PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_include_directories(lock_free_queue_test PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
