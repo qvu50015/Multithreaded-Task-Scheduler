@@ -90,6 +90,11 @@ add_executable(lock_free_queue_test
     src/LockFreeTaskQueue.cpp
 )
 
+add_executable(work_stealing_deque_test
+    tests/WorkStealingDequeTest.cpp
+    src/WorkStealingDeque.cpp
+)
+
 target_include_directories(task_scheduler PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
@@ -139,5 +144,9 @@ target_include_directories(work_stealing_benchmark PRIVATE
 )
 
 target_include_directories(lock_free_queue_test PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_include_directories(work_stealing_deque_test PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
