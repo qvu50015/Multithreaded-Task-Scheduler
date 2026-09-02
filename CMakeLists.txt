@@ -11,6 +11,7 @@ add_executable(task_scheduler
     src/ThreadPool.cpp
     src/TaskQueue.cpp
     src/LockFreeTaskQueue.cpp
+    src/WorkStealingDeque.cpp
 )
 
 # Tests
@@ -18,6 +19,7 @@ add_executable(thread_pool_tests
     tests/ThreadPoolTests.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/WorkStealingDeque.cpp
 )
 
 # Benchmark
@@ -25,6 +27,7 @@ add_executable(benchmark
     benchmarks/Benchmark.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/WorkStealingDeque.cpp
 )
 
 # Tiny Task Benchmark
@@ -32,6 +35,7 @@ add_executable(tiny-task-benchmark
     benchmarks/TinyTaskBenchmark.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/WorkStealingDeque.cpp
 )
 
 # Uneven Task Benchmark
@@ -39,6 +43,7 @@ add_executable(uneven-task-benchmark
     benchmarks/UnevenTaskBenchmark.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/WorkStealingDeque.cpp
 )
 
 # Work stealing Benchmark
@@ -46,6 +51,7 @@ add_executable(work_stealing_benchmark
     benchmarks/WorkStealingBenchmark.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/WorkStealingDeque.cpp
 )
 
 # Task Queue test
@@ -53,6 +59,7 @@ add_executable(task_queue_test
     tests/TaskQueueTest.cpp
     src/TaskQueue.cpp
     src/ThreadPool.cpp
+    src/WorkStealingDeque.cpp
 )
 
 # Priority Queue Test
@@ -72,6 +79,7 @@ add_executable(worker_distribution_test
     tests/WorkerDistributionTest.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/WorkStealingDeque.cpp
 )
 
 add_executable(task_queue_steal_test
@@ -83,6 +91,7 @@ add_executable(work_stealing_test
     tests/WorkStealingTest.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
+    src/WorkStealingDeque.cpp
 )
 
 add_executable(lock_free_queue_test
