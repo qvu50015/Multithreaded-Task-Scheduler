@@ -107,7 +107,7 @@ int main(){
     std::vector<int> workerCounts = {1, 2, 4, 8};
     long long sequentialTotal = 0;
 
-    for (int run = 0; run < 5; run++) {
+    for (int run = 0; run < 10; run++) {
         long long time = sequentialBenchmark();
         sequentialTotal += time;
 
@@ -118,14 +118,14 @@ int main(){
                   << " ms\n";
     }
 
-    double sequentialAverage = static_cast<double>(sequentialTotal) / 5.0;
+    double sequentialAverage = static_cast<double>(sequentialTotal) / 10.0;
 
     std::cout << "Sequential | Average: " << sequentialAverage << " ms\n\n";
 
     for (int workers : workerCounts) {
         long long totalTime = 0;
 
-        for (int run = 0; run < 5; run++) {
+        for (int run = 0; run < 10; run++) {
             long long time = threadPoolBenchmark(workers);
             totalTime += time;
             
@@ -137,7 +137,7 @@ int main(){
                     << " ms\n";
         }
 
-        double average = static_cast<double>(totalTime) / 5.0;
+        double average = static_cast<double>(totalTime) / 10.0;
         double speedup = sequentialAverage / average;
         double efficiency = speedup / workers * 100.0;
 

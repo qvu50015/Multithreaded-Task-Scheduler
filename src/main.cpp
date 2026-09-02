@@ -7,33 +7,38 @@ int main()
 {
     ThreadPool pool(4);
 
-    auto future1 = pool.enqueue([] {
+    auto intFuture = pool.enqueue([] {
         return 42;
     });
 
-    auto future2 = pool.enqueue([] {
+    auto doubleFuture = pool.enqueue([] {
         return 3.14;
     });
 
-    auto future3 = pool.enqueue([] {
-        return std::string("Hello");
+    auto stringFuture = pool.enqueue([] {
+        return std::string("Hello from the ThreadPool");
     });
 
-    auto future4 = pool.enqueue([] {
-        throw std::runtime_error("Task failed!");
-        return 42;
+    auto exceptionFuture = pool.enqueue([]() -> int {
+        throw std::runtime_error("Task failed! (Expected)");
     });
+
+    std::cout << "Integer result: "
+              << intFuture.get() << '\n';
+
+    std::cout << "Double result: "
+              << doubleFuture.get() << '\n';
+
+    std::cout << "String result: "
+              << stringFuture.get() << '\n';
 
     try {
-        std::cout << future4.get() << '\n';
+        exceptionFuture.get();
     }
     catch (const std::exception& e) {
-        std::cout << "Caught: " << e.what() << '\n';
+        std::cout << "Caught task exception: "
+                  << e.what() << '\n';
     }
-
-    std::cout << future1.get() << '\n';
-    std::cout << future2.get() << '\n';
-    std::cout << future3.get() << '\n';
 
     return 0;
 }

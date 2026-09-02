@@ -68,7 +68,7 @@ long long threadPoolBenchmark(int numWorkers){
 
 int main()
 {
-    const int numRuns = 5;
+    const int numRuns = 10;
     std::vector<int> workerCounts = {1, 2, 4, 8};
 
     // Sequential benchmark
