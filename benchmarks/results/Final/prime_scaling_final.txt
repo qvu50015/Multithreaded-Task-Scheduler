@@ -1,0 +1,52 @@
+Prime Scaling Benchmark — Final Results
+=======================================
+
+Environment
+-----------
+Platform: Apple Silicon Mac
+Language Standard: C++20
+Workers tested: 1, 2, 4, 8
+Runs per configuration: 10
+
+Workload
+--------
+Type: CPU-bound prime counting
+Range: 2 -> 5,000,000
+Number of tasks: 16
+
+Results
+-------
+
+Sequential
+Average: 720.4 ms
+Speedup: 1.00x
+
+ThreadPool (1 worker)
+Average: 720.1 ms
+Speedup: 1.00042x
+Efficiency: 100.042%
+
+ThreadPool (2 workers)
+Average: 387.0 ms
+Speedup: 1.8615x
+Efficiency: 93.0749%
+
+ThreadPool (4 workers)
+Average: 212.3 ms
+Speedup: 3.39331x
+Efficiency: 84.8328%
+
+ThreadPool (8 workers)
+Average: 161.5 ms
+Speedup: 4.46068x
+Efficiency: 55.7585%
+
+Summary
+-------
+The scheduler achieved a 4.46x speedup with 8 workers compared with
+sequential execution.
+
+Scaling remained strong through four workers. At eight workers,
+execution time continued to improve while efficiency decreased due to
+scheduling overhead, synchronization, contention, and limited available
+parallelism.

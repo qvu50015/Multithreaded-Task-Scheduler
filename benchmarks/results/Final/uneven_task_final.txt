@@ -1,0 +1,50 @@
+Uneven Task Benchmark — Final Results
+=====================================
+
+Environment
+-----------
+Platform: Apple Silicon Mac
+Language Standard: C++20
+Workers tested: 1, 2, 4, 8
+Runs per configuration: 10
+
+Workload
+--------
+16 tasks with deliberately uneven computational workloads
+Iteration counts range from 1,000,000 to 90,000,000
+Total workload: 555,000,000 iterations
+
+Results
+-------
+
+Sequential
+Average: 444.4 ms
+Speedup: 1.00x
+
+ThreadPool (1 worker)
+Average: 443.8 ms
+Speedup: 1.00135x
+
+ThreadPool (2 workers)
+Average: 237.9 ms
+Speedup: 1.86801x
+
+ThreadPool (4 workers)
+Average: 133.8 ms
+Speedup: 3.32138x
+
+ThreadPool (8 workers)
+Average: 100.5 ms
+Speedup: 4.42189x
+
+Summary
+-------
+The scheduler achieved a 4.42x speedup with 8 workers on a deliberately
+uneven workload.
+
+Per-worker task counts and workload measurements showed that workers
+executed different numbers of tasks as idle workers stole work from
+other queues.
+
+This demonstrates dynamic load balancing through per-worker queues and
+work stealing.

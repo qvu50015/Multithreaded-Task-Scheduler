@@ -1,0 +1,52 @@
+Tiny Task Benchmark — Final Results
+===================================
+
+Environment
+-----------
+Platform: Apple Silicon Mac
+Language Standard: C++20
+Workers tested: 1, 2, 4, 8
+Runs per configuration: 10
+
+Workload
+--------
+100,000 extremely small tasks
+Each task performs a simple multiplication.
+Timing unit: microseconds
+
+Results
+-------
+
+Sequential
+Average: 336.1 us
+Slowdown: 1.00x
+
+ThreadPool (1 worker)
+Average: 111,141 us
+Slowdown: 330.679x
+
+ThreadPool (2 workers)
+Average: 111,844 us
+Slowdown: 332.769x
+
+ThreadPool (4 workers)
+Average: 112,702 us
+Slowdown: 335.324x
+
+ThreadPool (8 workers)
+Average: 108,909 us
+Slowdown: 324.037x
+
+Summary
+-------
+Extremely fine-grained tasks are dominated by scheduler overhead.
+
+Task creation, futures, synchronization, queue operations, task
+submission, scheduling, and result collection cost far more than the
+computation performed by each individual task.
+
+This demonstrates that parallel execution is most effective when tasks
+contain enough useful computation to amortize scheduling overhead.
+
+Timing includes task submission, scheduling, execution, and future
+result collection, but excludes ThreadPool construction.
