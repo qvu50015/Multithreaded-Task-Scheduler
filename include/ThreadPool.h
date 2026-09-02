@@ -2,7 +2,6 @@
 #define THREADPOOL_H
 
 #include "TaskQueue.h"
-#include "WorkStealingDeque.h"
 #include <thread>
 #include <functional>
 #include <mutex>
@@ -19,18 +18,16 @@ class ThreadPool
 {
 private:
     std::condition_variable taskCondition;
-    std::mutex conditionMutex;
-    bool useLockFree;
+    std::mutex conditionMutex;    
 
     std::vector<std::unique_ptr<TaskQueue>> workerQueues;
-    std::vector<std::unique_ptr<WorkStealingDeque>> lockFreeQueues;
     std::atomic<size_t> nextWorker = 0;
     std::atomic<bool> running = true;
 
     std::vector<std::thread> workers;
 
 public:
-    ThreadPool(size_t numWorkers, bool useLockFree = false);
+    ThreadPool(size_t numWorkers);
 
     template <typename F>
     auto enqueue(F task);
@@ -52,31 +49,18 @@ auto ThreadPool::enqueue(F task)
 
     auto taskWrapper =
         std::make_shared<std::packaged_task<ReturnType()>>(
-            std::move(packagedTask));
-
-    size_t numQueues =
-        useLockFree
-            ? lockFreeQueues.size()
-            : workerQueues.size();
+            std::move(packagedTask)
+        );
 
     size_t workerIndex =
-        nextWorker.fetch_add(1) % numQueues;
+        nextWorker.fetch_add(1) % workerQueues.size();
 
-    auto wrapper = [taskWrapper]()
-    {
-        (*taskWrapper)();
-    };
-
-    if (useLockFree)
-    {
-        lockFreeQueues[workerIndex]->push(
-            std::move(wrapper));
-    }
-    else
-    {
-        workerQueues[workerIndex]->push(
-            std::move(wrapper));
-    }
+    workerQueues[workerIndex]->push(
+        [taskWrapper]()
+        {
+            (*taskWrapper)();
+        }
+    );
 
     taskCondition.notify_all();
 

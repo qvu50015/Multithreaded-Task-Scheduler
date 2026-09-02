@@ -8,34 +8,20 @@ int getCurrentWorkerId()
     return currentWorkerId;
 }
 
-ThreadPool::ThreadPool(
-    size_t numWorkers,
-    bool useLockFree
-)
-    : useLockFree(useLockFree)
+ThreadPool::ThreadPool(size_t numWorkers)
 {
-    for (size_t i = 0; i < numWorkers; ++i) {
-
-        if (useLockFree) {
-            lockFreeQueues.push_back(
-                std::make_unique<WorkStealingDeque>(
-                    200000
-                )
-            );
-        }
-        else {
-            workerQueues.push_back(
-                std::make_unique<TaskQueue>()
-            );
-        }
+    for (size_t i = 0; i < numWorkers; i++)
+    {
+        workerQueues.push_back(
+            std::make_unique<TaskQueue>());
     }
 
-    for (size_t i = 0; i < numWorkers; ++i) {
+    for (size_t i = 0; i < numWorkers; i++)
+    {
         workers.emplace_back(
             &ThreadPool::worker,
             this,
-            i + 1
-        );
+            i + 1);
     }
 }
 
@@ -56,7 +42,6 @@ ThreadPool::~ThreadPool()
 void ThreadPool::worker(int id)
 {
     currentWorkerId = id;
-    std::cout << "Worker " << id << " started\n";
 
     size_t workerIndex = id - 1;
 
@@ -65,60 +50,31 @@ void ThreadPool::worker(int id)
         std::function<void()> task;
 
         // 1. Try our own queue
-        bool foundTask = false;
-
-        if (useLockFree)
-        {
-            foundTask =
-                lockFreeQueues[workerIndex]->tryPop(task);
-        }
-        else
-        {
-            foundTask =
-                workerQueues[workerIndex]->tryPop(task);
-        }
-
-        if (foundTask)
+        if (workerQueues[workerIndex]->tryPop(task))
         {
             task();
             continue;
         }
 
         // 2. Try to steal from another worker
-        size_t numQueues =
-            useLockFree
-                ? lockFreeQueues.size()
-                : workerQueues.size();
-
-        bool stoleTask = false;
-
-        for (size_t i = 0; i < numQueues; ++i)
+        for (size_t i = 0; i < workerQueues.size(); i++)
         {
+
             if (i == workerIndex)
             {
                 continue;
             }
 
-            if (useLockFree)
+            if (workerQueues[i]->trySteal(task))
             {
-                stoleTask =
-                    lockFreeQueues[i]->trySteal(task);
-            }
-            else
-            {
-                stoleTask =
-                    workerQueues[i]->trySteal(task);
-            }
-
-            if (stoleTask)
-            {
+                task();
                 break;
             }
         }
 
-        if (stoleTask)
+        // If we stole a task, execute it and continue
+        if (task)
         {
-            task();
             continue;
         }
 
@@ -126,51 +82,21 @@ void ThreadPool::worker(int id)
         std::unique_lock<std::mutex> lock(conditionMutex);
 
         taskCondition.wait(lock, [this]
-        {
-            if (!running)
-            {
-                return true;
-            }
+                           {
+    if (!running) {
+        return true;
+    }
 
-            if (useLockFree)
-            {
-                for (const auto& queue : lockFreeQueues)
-                {
-                    if (!queue->empty())
-                    {
-                        return true;
-                    }
-                }
-            }
-            else
-            {
-                for (const auto& queue : workerQueues)
-                {
-                    if (!queue->empty())
-                    {
-                        return true;
-                    }
-                }
-            }
+    for (const auto& queue : workerQueues) {
+        if (!queue->empty()) {
+            return true;
+        }
+    }
 
-            return false;
-        });
+    return false; });
 
         // 4. If shutting down and no local work remains, exit
-        bool localEmpty;
-
-        if (useLockFree)
-        {
-            localEmpty =
-                lockFreeQueues[workerIndex]->empty();
-        }
-        else
-        {
-            localEmpty =
-                workerQueues[workerIndex]->empty();
-        }
-
-        if (!running && localEmpty)
+        if (!running && workerQueues[workerIndex]->empty())
         {
             return;
         }
