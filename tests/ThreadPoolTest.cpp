@@ -1,25 +1,27 @@
 #include "ThreadPool.h"
-#include <iostream>
 #include <atomic>
-#include <thread>
+#include <cassert>
+#include <iostream>
 
 void runTest(int numTasks){
-    std::atomic<int> counter = 0;
+    std::atomic<int> counter{0};
     {
         ThreadPool pool(4);
 
-        for (int i = 0; i < numTasks; i++){
+        for (int i = 0; i < numTasks; ++i) {
             pool.enqueue([&counter] {
-                counter++;
+                counter.fetch_add(1, std::memory_order_relaxed);
             });
         }
     }
 
+    assert(counter.load() == numTasks);
+
     std::cout << "Test Counter ["
               << numTasks
               << "]: "
-              << counter
-              << '\n';
+              << counter.load()
+              << " PASSED\n";
 }
 
 int main(){

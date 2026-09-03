@@ -16,7 +16,7 @@ add_executable(task_scheduler
 
 # Tests
 add_executable(thread_pool_tests
-    tests/ThreadPoolTests.cpp
+    tests/ThreadPoolTest.cpp
     src/ThreadPool.cpp
     src/TaskQueue.cpp
     src/WorkStealingDeque.cpp
