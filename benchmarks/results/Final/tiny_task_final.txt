@@ -16,7 +16,6 @@ Timing unit: microseconds
 
 Results
 -------
-
 Sequential
 Average: 336.1 us
 Slowdown: 1.00x

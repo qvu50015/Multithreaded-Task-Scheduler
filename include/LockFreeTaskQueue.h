@@ -6,8 +6,7 @@
 #include <memory>
 #include <utility>
 
-class LockFreeTaskQueue
-{
+class LockFreeTaskQueue{
 public:
     using Task = std::function<void()>;
 

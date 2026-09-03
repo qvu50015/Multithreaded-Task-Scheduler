@@ -14,8 +14,7 @@
 
 int getCurrentWorkerId();
 
-class ThreadPool
-{
+class ThreadPool{
 private:
     std::condition_variable taskCondition;
     std::mutex conditionMutex;    

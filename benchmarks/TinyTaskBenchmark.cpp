@@ -13,17 +13,14 @@ long long sequentialBenchmark(){
 
     auto start = std::chrono::steady_clock::now();
 
-    for (int i = 0; i < 100000; i++) {
+    for(int i = 0; i < 100000; i++){
         total += tinyWork(i);
     }
 
     auto end = std::chrono::steady_clock::now();
     std::cout << "Sequential result: " << total << '\n';
 
-    auto duration =
-        std::chrono::duration_cast<std::chrono::microseconds>(
-            end - start
-        );
+    auto duration =std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     return duration.count();
 }
@@ -33,12 +30,10 @@ long long threadPoolBenchmark(int numWorkers){
 
     ThreadPool pool(numWorkers);
     std::vector<std::future<long long>> futures;
-    
-    // Measure task submission, scheduling, execution, and result collection.
-    // ThreadPool construction is excluded.
+
     auto start = std::chrono::steady_clock::now();
 
-    for (int i = 0; i < numTasks; i++) {
+    for(int i = 0; i < numTasks; i++){
         futures.push_back(
             pool.enqueue([i] {
                 return tinyWork(i);
@@ -58,20 +53,15 @@ long long threadPoolBenchmark(int numWorkers){
         std::cout << "ERROR: Incorrect result!\n";
     }
 
-    auto duration =
-        std::chrono::duration_cast<std::chrono::microseconds>(
-            end - start
-        );
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     return duration.count();
 }
 
-int main()
-{
+int main(){
     const int numRuns = 10;
     std::vector<int> workerCounts = {1, 2, 4, 8};
 
-    // Sequential benchmark
     long long sequentialTotal = 0;
 
     for (int run = 0; run < numRuns; run++) {
@@ -86,19 +76,15 @@ int main()
                   << " µs\n";
     }
 
-    double sequentialAverage =
-        static_cast<double>(sequentialTotal) / numRuns;
+    double sequentialAverage = static_cast<double>(sequentialTotal) / numRuns;
 
-    std::cout << "Sequential | Average: "
-              << sequentialAverage
-              << " µs\n\n";
+    std::cout << "Sequential | Average: " << sequentialAverage << " µs\n\n";
 
 
     // ThreadPool benchmark
-    for (int workers : workerCounts) {
+    for(int workers : workerCounts){
 
         long long totalTime = 0;
-
         for (int run = 0; run < numRuns; run++) {
 
             long long time = threadPoolBenchmark(workers);
@@ -114,11 +100,9 @@ int main()
                       << " µs\n";
         }
 
-        double average =
-            static_cast<double>(totalTime) / numRuns;
+        double average = static_cast<double>(totalTime) / numRuns;
 
-        double slowdown =
-            average / sequentialAverage;
+        double slowdown = average / sequentialAverage;
 
         std::cout << "⭐ Workers: "
                   << workers

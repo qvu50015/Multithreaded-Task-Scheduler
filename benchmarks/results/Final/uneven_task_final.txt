@@ -16,7 +16,6 @@ Total workload: 555,000,000 iterations
 
 Results
 -------
-
 Sequential
 Average: 444.4 ms
 Speedup: 1.00x

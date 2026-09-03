@@ -4,8 +4,7 @@
 #include <vector>
 #include <future>
 
-bool isPrime(int n)
-{
+bool isPrime(int n){
     if (n < 2) {
         return false;
     }
@@ -19,8 +18,7 @@ bool isPrime(int n)
     return true;
 }
 
-int countPrimes(int start, int end)
-{
+int countPrimes(int start, int end){
     int count = 0;
 
     for (int i = start; i < end; i++) {
@@ -46,16 +44,12 @@ long long sequentialBenchmark(){
         std::cout << "ERROR: Incorrect prime count!\n";
     }
 
-    auto duration =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            endTime - startTime
-        );
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
     return duration.count();
 }
 
-long long threadPoolBenchmark(int numWorkers)
-{
+long long threadPoolBenchmark(int numWorkers){
     int start = 2;
     int end = 5000000;
     int numTasks = 16;
@@ -101,7 +95,6 @@ long long threadPoolBenchmark(int numWorkers)
 
     return duration.count();
 }
-
 
 int main(){
     std::vector<int> workerCounts = {1, 2, 4, 8};

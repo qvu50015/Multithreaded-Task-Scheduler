@@ -16,7 +16,6 @@ Number of tasks: 16
 
 Results
 -------
-
 Sequential
 Average: 720.4 ms
 Speedup: 1.00x

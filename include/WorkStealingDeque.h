@@ -7,8 +7,7 @@
 #include <memory>
 #include <vector>
 
-class WorkStealingDeque
-{
+class WorkStealingDeque{
 public:
     using Task = std::function<void()>;
 

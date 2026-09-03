@@ -1,4 +1,6 @@
-Prime Counting Benchmark (16 tasks)
+Prime Scaling Benchmark
+=======================
+
 Range: 2 - 5,000,000
 Prime Count: 348,513
 

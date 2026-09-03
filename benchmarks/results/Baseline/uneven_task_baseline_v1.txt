@@ -1,4 +1,5 @@
 Uneven Task Benchmark
+=====================
 
 Workload:
 - 16 tasks
@@ -25,7 +26,3 @@ Speedup: 3.35224x
 ThreadPool [8]:
 Average: 97.8 ms
 Speedup: 4.59305x
-
-Observation:
-The global task queue provided effective dynamic load balancing
-for this uneven workload, achieving 4.59x speedup with 8 workers.
