@@ -3,14 +3,12 @@
 #include <atomic>
 #include <thread>
 
-void runTest(int numTasks)
-{
+void runTest(int numTasks){
     std::atomic<int> counter = 0;
-
     {
         ThreadPool pool(4);
 
-        for (int i = 0; i < numTasks; i++) {
+        for (int i = 0; i < numTasks; i++){
             pool.enqueue([&counter] {
                 counter++;
             });
@@ -24,8 +22,7 @@ void runTest(int numTasks)
               << '\n';
 }
 
-int main()
-{
+int main(){
     runTest(100);
     runTest(1000);
     runTest(10000);

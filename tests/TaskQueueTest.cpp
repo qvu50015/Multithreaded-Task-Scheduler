@@ -3,10 +3,8 @@
 #include <vector>
 #include <future>
 
-int main()
-{
+int main(){
     ThreadPool pool(4);
-
     std::vector<std::future<void>> futures;
 
     for (int i = 0; i < 12; i++) {
@@ -20,7 +18,7 @@ int main()
         );
     }
 
-    for (auto& future : futures) {
+    for (auto& future : futures){
         future.get();
     }
 

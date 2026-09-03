@@ -1,8 +1,7 @@
 #include "TaskQueue.h"
 #include <iostream>
 
-int main()
-{
+int main(){
     TaskQueue queue;
 
     queue.push([] {
@@ -19,7 +18,9 @@ int main()
 
     std::function<void()> task;
 
-    if (queue.trySteal(task)) {
+    std::cout << "Expected: Task 3" << std::endl;
+
+    if (queue.trySteal(task)){
         task();
     }
 

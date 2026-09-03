@@ -5,16 +5,12 @@
 #include <thread>
 #include <chrono>
 
-int main()
-{
+int main(){
     ThreadPool pool(4);
 
     std::vector<std::future<void>> futures;
 
-    // Submit a large number of slow tasks.
-    // This creates opportunities for idle workers to steal work.
-    for (int i = 0; i < 20; i++)
-    {
+    for (int i = 0; i < 20; i++){
         futures.push_back(
             pool.enqueue([i]
             {
@@ -30,8 +26,7 @@ int main()
         );
     }
 
-    for (auto& future : futures)
-    {
+    for (auto& future : futures){
         future.get();
     }
 
