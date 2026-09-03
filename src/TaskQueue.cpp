@@ -1,13 +1,11 @@
 #include "TaskQueue.h"
 
-void TaskQueue::push(std::function<void()> task)
-{
+void TaskQueue::push(std::function<void()> task){
     std::lock_guard<std::mutex> lock(mutex);
     tasks.push_back(std::move(task));
 }
 
-bool TaskQueue::tryPop(std::function<void()>& task)
-{
+bool TaskQueue::tryPop(std::function<void()>& task){
     std::lock_guard<std::mutex> lock(mutex);
 
     if (tasks.empty()) {
@@ -20,14 +18,12 @@ bool TaskQueue::tryPop(std::function<void()>& task)
     return true;
 }
 
-bool TaskQueue::empty() const
-{
+bool TaskQueue::empty() const{
     std::lock_guard<std::mutex> lock(mutex);
     return tasks.empty();
 }
 
-bool TaskQueue::trySteal(std::function<void()>& task)
-{
+bool TaskQueue::trySteal(std::function<void()>& task){
     std::lock_guard<std::mutex> lock(mutex);
 
     if (tasks.empty()) {

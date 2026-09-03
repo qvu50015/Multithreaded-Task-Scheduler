@@ -6,13 +6,11 @@ LockFreeTaskQueue::LockFreeTaskQueue()
 {
 }
 
-LockFreeTaskQueue::~LockFreeTaskQueue()
-{
+LockFreeTaskQueue::~LockFreeTaskQueue(){
     Node* current = head.load();
 
-    while (current != nullptr) {
+    while(current != nullptr){
         Node* next = current->next.load();
-
         delete current;
 
         current = next;
@@ -20,28 +18,26 @@ LockFreeTaskQueue::~LockFreeTaskQueue()
 
     current = retiredHead.load();
 
-    while (current != nullptr) {
+    while(current != nullptr){
         Node* next = current->next.load();
-
         delete current;
 
         current = next;
     }
 }
 
-void LockFreeTaskQueue::push(Task task)
-{
+void LockFreeTaskQueue::push(Task task){
     Node* newNode = new Node(std::move(task));
 
-    Node* oldHead =
-        head.load(std::memory_order_relaxed);
+    Node* oldHead = head.load(std::memory_order_relaxed);
 
-    do {
+    do{
         newNode->next.store(
             oldHead,
             std::memory_order_relaxed
         );
     }
+
     while (!head.compare_exchange_weak(
         oldHead,
         newNode,
@@ -50,19 +46,13 @@ void LockFreeTaskQueue::push(Task task)
     ));
 }
 
-bool LockFreeTaskQueue::tryPop(Task& task)
-{
-    Node* oldHead =
-        head.load(std::memory_order_acquire);
+bool LockFreeTaskQueue::tryPop(Task& task){
+    Node* oldHead = head.load(std::memory_order_acquire);
 
-    while (oldHead != nullptr) {
+    while(oldHead != nullptr){
+        Node* next = oldHead->next.load(std::memory_order_relaxed);
 
-        Node* next =
-            oldHead->next.load(
-                std::memory_order_relaxed
-            );
-
-        if (head.compare_exchange_weak(
+        if(head.compare_exchange_weak(
                 oldHead,
                 next,
                 std::memory_order_acquire,
@@ -80,20 +70,17 @@ bool LockFreeTaskQueue::tryPop(Task& task)
     return false;
 }
 
-void LockFreeTaskQueue::retireNode(Node* node)
-{
-    Node* oldRetired =
-        retiredHead.load(
-            std::memory_order_relaxed
-        );
+void LockFreeTaskQueue::retireNode(Node* node){
+    Node* oldRetired = retiredHead.load(std::memory_order_relaxed);
 
-    do {
+    do{
         node->next.store(
             oldRetired,
             std::memory_order_relaxed
         );
     }
-    while (!retiredHead.compare_exchange_weak(
+
+    while(!retiredHead.compare_exchange_weak(
         oldRetired,
         node,
         std::memory_order_release,

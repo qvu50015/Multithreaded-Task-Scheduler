@@ -3,21 +3,16 @@
 
 thread_local int currentWorkerId = 0;
 
-int getCurrentWorkerId()
-{
+int getCurrentWorkerId(){
     return currentWorkerId;
 }
 
-ThreadPool::ThreadPool(size_t numWorkers)
-{
-    for (size_t i = 0; i < numWorkers; i++)
-    {
-        workerQueues.push_back(
-            std::make_unique<TaskQueue>());
+ThreadPool::ThreadPool(size_t numWorkers){
+    for (size_t i = 0; i < numWorkers; i++){
+        workerQueues.push_back(std::make_unique<TaskQueue>());
     }
 
-    for (size_t i = 0; i < numWorkers; i++)
-    {
+    for (size_t i = 0; i < numWorkers; i++){
         workers.emplace_back(
             &ThreadPool::worker,
             this,
@@ -25,56 +20,46 @@ ThreadPool::ThreadPool(size_t numWorkers)
     }
 }
 
-ThreadPool::~ThreadPool()
-{
+ThreadPool::~ThreadPool(){
     running = false;
     taskCondition.notify_all();
 
-    for (auto &worker : workers)
-    {
-        if (worker.joinable())
-        {
+    for (auto &worker : workers){
+        if (worker.joinable()){
             worker.join();
         }
     }
 }
 
-void ThreadPool::worker(int id)
-{
+void ThreadPool::worker(int id){
     currentWorkerId = id;
 
     size_t workerIndex = id - 1;
 
-    while (true)
-    {
+    while (true){
         std::function<void()> task;
 
         // 1. Try our own queue
-        if (workerQueues[workerIndex]->tryPop(task))
-        {
+        if (workerQueues[workerIndex]->tryPop(task)){
             task();
             continue;
         }
 
         // 2. Try to steal from another worker
-        for (size_t i = 0; i < workerQueues.size(); i++)
-        {
+        for (size_t i = 0; i < workerQueues.size(); i++){
 
-            if (i == workerIndex)
-            {
+            if (i == workerIndex){
                 continue;
             }
 
-            if (workerQueues[i]->trySteal(task))
-            {
+            if (workerQueues[i]->trySteal(task)){
                 task();
                 break;
             }
         }
 
         // If we stole a task, execute it and continue
-        if (task)
-        {
+        if (task){
             continue;
         }
 
@@ -83,11 +68,11 @@ void ThreadPool::worker(int id)
 
         taskCondition.wait(lock, [this]
                            {
-    if (!running) {
+    if (!running){
         return true;
     }
 
-    for (const auto& queue : workerQueues) {
+    for (const auto& queue : workerQueues){
         if (!queue->empty()) {
             return true;
         }
@@ -96,8 +81,7 @@ void ThreadPool::worker(int id)
     return false; });
 
         // 4. If shutting down and no local work remains, exit
-        if (!running && workerQueues[workerIndex]->empty())
-        {
+        if (!running && workerQueues[workerIndex]->empty()){
             return;
         }
     }

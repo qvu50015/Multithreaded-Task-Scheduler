@@ -16,13 +16,9 @@ WorkStealingDeque::WorkStealingDeque(
     }
 }
 
-void WorkStealingDeque::push(Task task)
-{
-    std::size_t b =
-        bottom.load(std::memory_order_relaxed);
-
-    std::size_t t =
-        top.load(std::memory_order_acquire);
+void WorkStealingDeque::push(Task task){
+    std::size_t b = bottom.load(std::memory_order_relaxed);
+    std::size_t t = top.load(std::memory_order_acquire);
 
     if (b - t >= capacity) {
         throw std::runtime_error(
@@ -30,8 +26,7 @@ void WorkStealingDeque::push(Task task)
         );
     }
 
-    TaskPtr taskPtr =
-        std::make_shared<Task>(std::move(task));
+    TaskPtr taskPtr = std::make_shared<Task>(std::move(task));
 
     std::atomic_store_explicit(
         &buffer[b % capacity],
@@ -49,19 +44,16 @@ void WorkStealingDeque::push(Task task)
     );
 }
 
-bool WorkStealingDeque::trySteal(Task& task)
-{
-    std::size_t t =
-        top.load(std::memory_order_acquire);
+bool WorkStealingDeque::trySteal(Task& task){
+    std::size_t t = top.load(std::memory_order_acquire);
 
     std::atomic_thread_fence(
         std::memory_order_seq_cst
     );
 
-    std::size_t b =
-        bottom.load(std::memory_order_acquire);
+    std::size_t b = bottom.load(std::memory_order_acquire);
 
-    if (t >= b) {
+    if(t >= b){
         return false;
     }
 
@@ -95,10 +87,8 @@ bool WorkStealingDeque::trySteal(Task& task)
     return true;
 }
 
-bool WorkStealingDeque::tryPop(Task& task)
-{
-    std::size_t b =
-        bottom.load(std::memory_order_relaxed);
+bool WorkStealingDeque::tryPop(Task& task){
+    std::size_t b = bottom.load(std::memory_order_relaxed);
 
     if (b == 0) {
         return false;
@@ -115,11 +105,9 @@ bool WorkStealingDeque::tryPop(Task& task)
         std::memory_order_seq_cst
     );
 
-    std::size_t t =
-        top.load(std::memory_order_relaxed);
+    std::size_t t = top.load(std::memory_order_relaxed);
 
     if (t <= b) {
-
         TaskPtr taskPtr =
             std::atomic_load_explicit(
                 &buffer[b % capacity],
@@ -137,7 +125,6 @@ bool WorkStealingDeque::tryPop(Task& task)
 
         // Last task in the deque.
         if (t == b) {
-
             if (!top.compare_exchange_strong(
                     t,
                     t + 1,
@@ -145,7 +132,6 @@ bool WorkStealingDeque::tryPop(Task& task)
                     std::memory_order_relaxed
                 )) {
 
-                // A thief won the race.
                 bottom.store(
                     b + 1,
                     std::memory_order_relaxed

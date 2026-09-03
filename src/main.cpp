@@ -3,8 +3,7 @@
 #include <stdexcept>
 #include <string>
 
-int main()
-{
+int main(){
     ThreadPool pool(4);
 
     auto intFuture = pool.enqueue([] {
@@ -23,21 +22,18 @@ int main()
         throw std::runtime_error("Task failed! (Expected)");
     });
 
-    std::cout << "Integer result: "
-              << intFuture.get() << '\n';
+    std::cout << "Integer result: " << intFuture.get() << '\n';
 
-    std::cout << "Double result: "
-              << doubleFuture.get() << '\n';
+    std::cout << "Double result: " << doubleFuture.get() << '\n';
 
-    std::cout << "String result: "
-              << stringFuture.get() << '\n';
+    std::cout << "String result: " << stringFuture.get() << '\n';
 
-    try {
+    try{
         exceptionFuture.get();
     }
-    catch (const std::exception& e) {
-        std::cout << "Caught task exception: "
-                  << e.what() << '\n';
+
+    catch(const std::exception& e){
+        std::cout << "Caught task exception: " << e.what() << '\n';
     }
 
     return 0;
