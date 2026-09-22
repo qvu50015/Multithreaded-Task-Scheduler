@@ -1,317 +1,194 @@
 # Multithreaded Task Scheduler
 
-A high-performance multithreaded task scheduler written in **C++20**.
+A **C++20 task scheduler** featuring a thread pool, per-worker queues, work stealing, and future-based results. Includes benchmarks exploring CPU scaling, uneven workloads, and scheduling overhead.
 
-The project explores thread pools, per-worker task queues, work stealing, futures, synchronization, concurrent data structures, and performance analysis across different workload types.
+The project explores concurrent programming with `std::thread`, mutexes, condition variables, atomics, and explicit memory ordering. The main thread pool uses mutex-protected queues; atomic data structures are separate experiments.
 
-## Features
+## Build and Usage
 
-* C++20 thread pool
-* Persistent worker threads
-* Per-worker task queues
-* Work stealing for load balancing
-* `std::future`-based task results
-* `std::packaged_task` task execution
-* Condition-variable-based worker sleeping
-* Graceful thread-pool shutdown
-* Priority queue implementation
-* CPU scaling benchmarks
-* Uneven-workload benchmarks
-* Fine-grained task overhead analysis
-* Experimental atomic queue implementation
-* Experimental atomic work-stealing deque
-* Concurrent stress tests with up to 100,000 tasks
+Use a C++20-capable compiler and CMake 3.22 or newer for development. The current CMake file declares a minimum of 3.20.
 
-## Project Structure
+From the repository root, create a Debug build so test assertions remain enabled:
 
-```text
-Multithreaded-Task-Scheduler/
-│
-├── benchmarks/
-│   ├── results/
-│   ├── Benchmark.cpp
-│   ├── TinyTaskBenchmark.cpp
-│   ├── UnevenTaskBenchmark.cpp
-│   └── WorkStealingBenchmark.cpp
-│
-├── include/
-│   ├── LockFreeTaskQueue.h
-│   ├── TaskQueue.h
-│   ├── ThreadPool.h
-│   └── WorkStealingDeque.h
-|
-├── src/
-│   ├── LockFreeTaskQueue.cpp
-│   ├── main.cpp
-│   ├── TaskQueue.cpp
-│   ├── ThreadPool.cpp
-│   └── WorkStealingDeque.cpp
-|
-├── tests/
-│   ├── LockFreeTaskQueue.cpp
-│   ├── TaskQueueStealTest.cpp
-│   ├── TaskQueueTest.cpp
-│   ├── ThreadPoolTest.cpp
-│   ├── WorkerDistributionTest.cpp
-│   ├── WorkStealingDequeTest.cpp
-│   └── WorkStealingTest.cpp
-│
-├── CMakeLists.txt
-└── README.md
+```bash
+cmake -S . -B build-debug -DCMAKE_BUILD_TYPE=Debug
+cmake --build build-debug -j
+./build-debug/task_scheduler
 ```
+
+The demo shows multiple return types, asynchronous task execution, and exception propagation through futures.
+
+### Submit a Task
+
+```cpp
+#include "ThreadPool.h"
+#include <iostream>
+
+int main() {
+    ThreadPool pool(4);
+
+    auto result = pool.enqueue([] {
+        return 21 * 2;
+    });
+
+    std::cout << result.get() << '\n'; // Prints 42.
+}
+```
+
+`enqueue` accepts a callable with no arguments and returns a future for its result. Capture task inputs in the callable; `future.get()` waits for completion and rethrows any exception captured from the task. Construct the pool with at least one worker.
+
+See [src/main.cpp](src/main.cpp) for a larger example.
 
 ## Architecture
 
-Tasks submitted to the thread pool are distributed across per-worker queues.
+Submissions are assigned to worker queues in round-robin order. Each worker first checks its own queue, then attempts to steal work from other queues.
 
-Each worker first attempts to execute work from its own queue. If its queue is empty, it attempts to steal work from another worker's queue.
-
-```text
-                 ThreadPool
-                     |
-        +------------+------------+
-        |            |            |
-        v            v            v
-    Worker 1     Worker 2     Worker 3 ...
-      Queue         Queue         Queue
-        |            |            |
-        +------ Work Stealing ----+
+```mermaid
+flowchart TD
+    Submit["enqueue(task)"] --> Pool[ThreadPool]
+    Pool --> Assign[Round-robin task assignment]
+    Assign --> Q1[Worker 1 queue]
+    Assign --> Q2[Worker 2 queue]
+    Assign --> QN[Worker N queue]
+    Q1 --> W1[Worker 1]
+    Q2 --> W2[Worker 2]
+    QN --> WN[Worker N]
+    W1 --> Empty[If local queue is empty]
+    W2 --> Empty
+    WN --> Empty
+    Empty --> Steal[Try stealing from other queues]
 ```
 
-The production scheduler uses mutex-protected per-worker queues for predictable synchronization and correctness.
+- **Per-worker queues:** Each queue has its own mutex. Workers pop from the front of their local queue and steal from the back of another queue.
+- **Task results:** `std::packaged_task` wraps each callable and delivers its result or exception through `std::future`.
+- **Idle workers:** A condition variable lets workers sleep when no queued work is found.
+- **Lifetime:** The destructor signals shutdown and joins worker threads. Shutdown behavior is exercised by the thread-pool stress test; synchronization limitations are listed below.
 
-## Getting Started
+Implementation: [ThreadPool](src/ThreadPool.cpp) and [TaskQueue](src/TaskQueue.cpp).
 
-Build the project:
+### Worker Loop
+
+After executing a task, each worker checks its local queue again. If neither a local pop nor a steal succeeds, it waits on a condition variable. The wait predicate allows it to continue immediately when shutdown is signaled or any queue has work.
+
+```mermaid
+flowchart TD
+    Local{"Local task available?"} -->|Yes| Execute[Execute task]
+    Local -->|No| Steal[Try stealing from other queues]
+    Steal --> Found{"Task stolen?"}
+    Found -->|Yes| Execute
+    Execute --> Local
+    Found -->|No| Wait["Wait on condition variable until shutdown or queued work"]
+    Wait --> Stop{"Shutdown signaled and local queue empty?"}
+    Stop -->|Yes| Exit[Exit worker]
+    Stop -->|No| Local
+```
+
+This shows the current control flow; the potential missed-wakeup race is documented under [Limitations and Future Work](#limitations-and-future-work).
+
+## Benchmarks
+
+### Run Locally
+
+Use a separate build for performance measurements:
 
 ```bash
 cmake -S . -B build
-cmake --build build
-```
-
-### Quick Demo
-
-Run the example program:
-
-```bash
-./build/task_scheduler
-```
-
-This demonstrates task submission, `std::future` results, multiple return types, and exception propagation.
-
-Run the work-stealing demo:
-
-```bash
-./build/work_stealing_test
-```
-
-This demonstrates tasks being executed across multiple workers with work stealing.
-
-### Benchmarks
-
-Run the CPU-bound prime-counting benchmark:
-
-```bash
+cmake --build build -j
 ./build/benchmark
-```
-
-Run the uneven-workload benchmark:
-
-```bash
 ./build/uneven-task-benchmark
-```
-
-Run the tiny-task overhead benchmark:
-
-```bash
 ./build/tiny-task-benchmark
 ```
 
-### Correctness and Stress Tests
+Each executable runs sequential execution and configurations of 1, 2, 4, and 8 workers, with 10 runs per configuration.
+
+### Recorded Results
+
+The following averages are preserved from the [saved benchmark results](benchmarks/results/Final). They were recorded on an **Apple Silicon Mac**, with **10 runs per configuration**.
+
+Speedup is sequential time divided by parallel time. Parallel efficiency is speedup divided by worker count, multiplied by 100.
+
+#### Prime Counting
+
+Counts primes in the range `[2, 5,000,000)`, divided into 16 tasks for parallel execution.
+
+| Workers | Average Time | Speedup | Efficiency |
+| ---: | ---: | ---: | ---: |
+| Sequential | 720.4 ms | 1.00× | — |
+| 1 | 720.1 ms | 1.00× | ~100% |
+| 2 | 387.0 ms | 1.86× | 93.1% |
+| 4 | 212.3 ms | 3.39× | 84.8% |
+| 8 | 161.5 ms | **4.46×** | 55.8% |
+
+Execution time improved through eight workers while parallel efficiency decreased. Possible contributors include scheduling overhead, contention, and the machine's CPU configuration; these measurements do not isolate their individual effects.
+
+#### Uneven Workloads
+
+Runs 16 tasks with workloads ranging from 1,000,000 to 90,000,000 loop iterations.
+
+| Workers | Average Time | Speedup |
+| ---: | ---: | ---: |
+| Sequential | 444.4 ms | 1.00× |
+| 1 | 443.8 ms | 1.00× |
+| 2 | 237.9 ms | 1.87× |
+| 4 | 133.8 ms | 3.32× |
+| 8 | 100.5 ms | **4.42×** |
+
+The benchmark records task counts, assigned workload, and task execution time per worker. Work stealing allows idle workers to claim queued tasks, but these results do not quantify its benefit independently. That requires a comparison with stealing disabled under the same conditions.
+
+#### Tiny-Task Overhead
+
+Submits 100,000 tasks, each performing a simple multiplication.
+
+| Configuration | Average Time | Slowdown vs. Sequential |
+| --- | ---: | ---: |
+| Sequential | 336.1 µs | 1.00× |
+| 1 worker | 111,141 µs | 330.7× |
+| 2 workers | 111,844 µs | 332.8× |
+| 4 workers | 112,702 µs | 335.3× |
+| 8 workers | 108,909 µs | 324.0× |
+
+For this workload, task submission, futures, synchronization, and result collection cost far more than the computation itself. **Tasks need enough useful work to amortize scheduling overhead.**
+
+Timing boundaries differ across benchmarks: prime counting includes pool construction; uneven and tiny-task timings exclude it. Uneven-workload timing also includes per-worker reporting. All three exclude pool destruction.
+
+## Testing
+
+Run the standalone stress tests from the Debug build:
 
 ```bash
-./build/thread_pool_tests
-./build/work_stealing_deque_test
-./build/lock_free_queue_test
+./build-debug/thread_pool_tests
+./build-debug/work_stealing_deque_test
+./build-debug/lock_free_queue_test
 ```
 
+| Program | Coverage |
+| --- | --- |
+| `thread_pool_tests` | Task-completion counts after pool destruction, from 100 to 100,000 tasks |
+| `work_stealing_deque_test` | 100,000 preloaded tasks consumed by one owner and three thieves; checks missing and duplicate executions |
+| `lock_free_queue_test` | Four producers insert 100,000 tasks, followed by four concurrent consumers |
 
-## Performance
+Additional worker-distribution and queue demonstrations:
 
-Benchmarks were run on an **Apple Silicon Mac** using 1, 2, 4, and 8 worker threads.
-
-Each configuration was run **10 times**, and the average execution time was recorded.
-
-### Prime Counting Benchmark
-
-The CPU-intensive benchmark counts prime numbers from 2 to 5,000,000 using 16 tasks.
-
-|    Workers | Average Time |   Speedup | Efficiency |
-| ---------: | -----------: | --------: | ---------: |
-| Sequential |     720.4 ms |     1.00x |          — |
-|          1 |     720.1 ms |     1.00x |      ~100% |
-|          2 |     387.0 ms |     1.86x |      93.1% |
-|          4 |     212.3 ms |     3.39x |      84.8% |
-|          8 |     161.5 ms | **4.46x** |      55.8% |
-
-Efficiency is calculated as:
-
-`Efficiency = Speedup / Number of Workers × 100`
-
-The scheduler achieved a **4.46x speedup with 8 workers** compared with sequential execution.
-
-Scaling remained strong through four workers. At eight workers, execution time continued to improve, while efficiency decreased because synchronization, scheduling overhead, contention, and available CPU parallelism limit ideal linear scaling.
-
-### Uneven Workload Benchmark
-
-This benchmark uses 16 tasks with deliberately uneven computational workloads ranging from 1,000,000 to 90,000,000 loop iterations.
-
-|    Workers | Average Time |   Speedup |
-| ---------: | -----------: | --------: |
-| Sequential |     444.4 ms |     1.00x |
-|          1 |     443.8 ms |     1.00x |
-|          2 |     237.9 ms |     1.87x |
-|          4 |     133.8 ms |     3.32x |
-|          8 |     100.5 ms | **4.42x** |
-
-The scheduler maintained strong scaling under uneven task sizes, reaching a **4.42x speedup with 8 workers**.
-
-Per-worker instrumentation was used to record task counts, computational workload, and execution time across workers.
-
-Because workers can steal tasks from other queues after finishing their local work, the scheduler can dynamically redistribute work instead of leaving workers idle while another worker remains overloaded.
-
-### Tiny-Task Overhead
-
-To measure scheduling overhead, 100,000 extremely small tasks were submitted to the thread pool.
-
-Each task performs only a simple multiplication.
-
-| Configuration          | Average Time | Slowdown vs. Sequential |
-| ---------------------- | -----------: | ----------------------: |
-| Sequential             |     336.1 µs |                   1.00x |
-| ThreadPool (1 worker)  |   111,141 µs |                  330.7x |
-| ThreadPool (2 workers) |   111,844 µs |                  332.8x |
-| ThreadPool (4 workers) |   112,702 µs |                  335.3x |
-| ThreadPool (8 workers) |   108,909 µs |                  324.0x |
-
-For extremely fine-grained tasks, scheduler overhead is much larger than the computation itself.
-
-Task creation, futures, synchronization, queue operations, scheduling, and result collection dominate the cost of executing each tiny task.
-
-This demonstrates an important task-scheduling tradeoff: **parallel execution is most effective when individual tasks contain enough useful computation to amortize scheduling overhead.**
-
-Tiny-task timing includes task submission, scheduling, execution, and future result collection, but excludes construction of the `ThreadPool`.
-
-## Work Stealing
-
-Each worker primarily executes tasks from its own queue.
-
-When a worker becomes idle, it checks other workers' queues and attempts to steal available work.
-
-```text
-Worker 1: [Task][Task][Task][Task]
-Worker 2: [Task]
-Worker 3: []
-Worker 4: []
-
-                 |
-                 v
-
-Idle workers steal available work from
-workers that still have queued tasks.
+```bash
+./build-debug/work_stealing_test
+./build-debug/worker_distribution_test
+./build-debug/task_queue_test
+./build-debug/task_queue_steal_test
 ```
 
-This helps reduce idle time when task execution costs are uneven.
+Tests are currently standalone programs. Some report failure through console output while still returning exit code zero. Inspect their output; successful stress runs do not establish correctness for every concurrent execution. The experimental tests do not cover overlapping production and consumption or deque slot reuse under concurrent pushes.
 
-## Experimental Concurrent Data Structures
+### Experimental Data Structures
 
-The project also includes standalone concurrent-data-structure experiments used to explore advanced C++ synchronization concepts.
+- [LockFreeTaskQueue](src/LockFreeTaskQueue.cpp) explores atomic compare-and-swap operations and deferred node reclamation. Despite its name, it removes the most recently inserted task first (LIFO).
+- [WorkStealingDeque](src/WorkStealingDeque.cpp) explores a bounded buffer with owner-pop and thief-steal operations using explicit memory ordering and atomic shared-pointer operations.
 
-These implementations explore:
+These components are separate from the main thread pool. Their atomic operations and passing stress tests do not establish an end-to-end lock-free guarantee.
 
-* `std::atomic`
-* compare-and-swap operations
-* explicit C++ memory ordering
-* lock-free-style linked structures
-* owner-pop / thief-steal work-stealing semantics
-* concurrent stress testing
+## Limitations and Future Work
 
-### Atomic Queue Prototype
+Correctness and validation priorities:
 
-A standalone atomic queue prototype successfully processed **100,000 tasks** under concurrent access.
-
-### Experimental Work-Stealing Deque
-
-The experimental work-stealing deque uses separate logical ends for the owning worker and stealing threads.
-
-The owner removes tasks from one end while thief threads attempt to claim tasks from the opposite end.
-
-It was stress-tested with one owner and multiple thief threads:
-
-| Metric          |  Result |
-| --------------- | ------: |
-| Expected Tasks  | 100,000 |
-| Completed Tasks | 100,000 |
-| Missing Tasks   |       0 |
-| Duplicate Tasks |       0 |
-
-The production `ThreadPool` continues to use mutex-backed per-worker task queues.
-
-The atomic queue and work-stealing deque are maintained as experimental components for studying compare-and-swap operations, memory ordering, and concurrent queue design.
-
-## Performance Findings
-
-The benchmarks demonstrate several important characteristics of multithreaded scheduling:
-
-* CPU-intensive workloads scale effectively across multiple workers.
-* The prime-counting workload reached **4.46x speedup with 8 workers**.
-* The uneven workload reached **4.42x speedup with 8 workers**.
-* Parallel efficiency decreases as worker count increases.
-* Work stealing provides a mechanism for idle workers to claim queued work from other workers when local work is exhausted.
-* Extremely small tasks perform poorly because scheduler overhead dominates computation.
-* Task granularity is an important factor in determining whether parallel execution is beneficial.
-
-## Technologies
-
-* C++20
-* `std::thread`
-* `std::atomic`
-* `std::mutex`
-* `std::condition_variable`
-* `std::future`
-* `std::packaged_task`
-* `std::function`
-* CMake
-
-## Design Decisions
-
-### Per-Worker Queues
-
-Using one queue per worker reduces contention compared with having every worker compete for a single global queue.
-
-### Work Stealing
-
-Workers first process their own local tasks. When a local queue becomes empty, the worker attempts to steal work from another queue.
-
-This provides dynamic load balancing for workloads where task execution times differ significantly.
-
-### Mutex-Backed Production Queues
-
-The production scheduler uses mutex-protected task queues because they provide straightforward ownership semantics and predictable correctness.
-
-The project also explores atomic queue designs separately without making experimental concurrent data structures part of the primary scheduler path.
-
-### Futures
-
-Tasks are wrapped in `std::packaged_task`, allowing callers to receive results and exceptions through `std::future`.
-
-### Condition Variables
-
-Workers use a condition variable instead of continuously polling for work, reducing unnecessary CPU usage while idle.
-
-## Future Work
-
-Potential extensions include:
-
-* Task cancellation
-* Task dependency graphs
+- Fix a potential missed-wakeup race: submission and shutdown update the worker wait conditions without holding the condition-variable mutex, allowing a notification to occur between a predicate check and sleeping.
+- Reject zero-worker construction; submitting to such a pool currently attempts modulo by zero.
+- Add tests for idle-to-active transitions, shutdown, concurrent producers and consumers, and deque slot reuse, plus sanitizer checks.

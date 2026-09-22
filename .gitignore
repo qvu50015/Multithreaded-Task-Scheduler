@@ -2,6 +2,7 @@ main
 
 # CMake build directory
 /build/
+/build-debug/
 
 # Compiled executable
 /src/main
